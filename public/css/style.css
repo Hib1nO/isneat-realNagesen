@@ -1,0 +1,113 @@
+#PageTitle {
+    margin-top: 1rem;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.text-left {
+    text-align: left;
+}
+
+.MatchTimerPanel {
+    display: flex;
+    justify-content: space-around;
+    font-size: 3rem;
+}
+
+.Timers {
+    display: flex;
+    justify-content: space-around;
+    font-size: 3rem;
+}
+
+.ItemTitle {
+    margin-right: 2rem;
+}
+
+.ItemText {
+    color: rgb(235, 236, 240);
+    font-weight: bold;
+}
+
+.Players{
+   margin: 1.5rem 5rem 0 5rem;
+}
+
+.PlalayerImage-solo{
+    width: 30%;
+    margin: Auto;
+}
+
+.PlalayerImage-duo{
+    width: 70%;
+    margin: Auto;
+}
+
+.margintop1-5 {
+   margin-top: 1.5rem;
+}
+
+.Scores {
+    font-size: 3rem;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+}
+
+.ScoreTitleText{
+    width: 30%;
+}
+
+.ScoreText {
+    width: 70%;
+}
+
+.nondisplay {
+    display: none;
+}
+
+.MatchCenterItem{
+    margin: 5rem;
+}
+
+.marginlr4 {
+    margin: 0 4rem 0 4rem;
+}
+
+.marginbottom10 {
+    margin-bottom: 5rem;
+}
+
+.table_box {
+    overflow-y: auto;
+    height: 40rem;
+}
+
+.sticky {
+  position: sticky;
+  top: 0;
+  left: 0;
+  border-top: none;
+  background-color: #14161A !important;
+}
+
+.SettingItemAre {
+    margin:0 auto;
+    width: 70%;
+}
+
+.MatchTimerSettings {
+    float: left;
+    margin-right: 1rem;
+}
+
+.MatchTimerSettingsTitle {
+    float: left;
+    margin-right: 1rem;
+}
+
+MatchTimerSettingsAre {
+    height: auto;
+}

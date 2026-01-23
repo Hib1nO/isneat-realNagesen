@@ -1,0 +1,70 @@
+h1.title.is-1.text-center 試合のプレイヤー設定
+
+.field.SettingItemAre
+    label.label 試合形式
+    .control
+        .select.is-fullwidth
+            select#MatchFormat(name="MatchFormat") 
+                option 1vs1
+                option 2vs2
+    
+    .fixed-grid.has-2-cols.margintop1-5
+        .grid
+            .cell 
+                label.label Left Player01
+                .control 
+                    .select.is-fullwidth
+                        select#LeftPlayer01Select(name="LeftPlayer01Select") 
+                            option テストユーザー01
+                            option テストユーザー02
+                            option テストユーザー03
+                            option テストユーザー04
+            .cell 
+                label.label Right Player02
+                .control 
+                    .select.is-fullwidth
+                        select#RightPlayer02Select(name="RightPlayer02Select") 
+                            option テストユーザー01
+                            option テストユーザー02
+                            option テストユーザー03
+                            option テストユーザー04
+            .cell 
+                label.label Left Player03
+                .control 
+                    .select.is-fullwidth
+                        select#LeftPlayer03Select(name="LeftPlayer03Select") 
+                            option テストユーザー01
+                            option テストユーザー02
+                            option テストユーザー03
+                            option テストユーザー04
+            .cell 
+                label.label Left Player04
+                .control 
+                    .select.is-fullwidth
+                        select#LeftPlayer04Select(name="LeftPlayer04Select") 
+                            option テストユーザー01
+                            option テストユーザー02
+                            option テストユーザー03
+                            option テストユーザー04
+
+h1.title.is-1.text-center 試合設定
+.SettingItemAre
+    
+    div
+        label.label 試合時間
+        .MatchTimerSettingsAre
+            .MatchTimerSettings
+                input.input(type="text", placeholder="Text input")
+            .MatchTimerSettingsTitle 分
+            .MatchTimerSettings
+                input.input(type="text", placeholder="Text input")
+            .MatchTimerSettingsTitle 秒
+
+        label.label スピチャレ時間
+        .SCTimerSettingsAre 
+            .MatchTimerSettings
+                input.input(type="text", placeholder="Text input")
+            .MatchTimerSettingsTitle 分
+            .MatchTimerSettings
+                input.input(type="text", placeholder="Text input")
+            .MatchTimerSettingsTitle 秒

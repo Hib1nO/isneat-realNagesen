@@ -1,0 +1,29 @@
+extends layout
+
+block content
+  h1 Admin
+  div
+    button#start Timer Start (60s)
+    button#pause Pause Toggle
+    button#reset Match Reset
+    button#sc SC Start
+    button#p1ok SC P1 Success
+    button#p2ok SC P2 Success
+  pre#log
+
+  script(src="/socket.io/socket.io.js")
+  script.
+    const log = (x) => document.getElementById("log").textContent = JSON.stringify(x, null, 2);
+    const s = io("/admin");
+
+    s.on("state:init", log);
+    s.on("state:update", log);
+    s.on("notify", (m) => console.log("notify", m));
+
+    document.getElementById("start").onclick = () => s.emit("timer:start", { seconds: 60 });
+    document.getElementById("pause").onclick = () => s.emit("timer:pauseToggle");
+    document.getElementById("reset").onclick = () => s.emit("match:reset");
+
+    document.getElementById("sc").onclick = () => s.emit("sc:start", { intervalSec: 10, mainSec: 10, magnification: 2 });
+    document.getElementById("p1ok").onclick = () => s.emit("sc:success", { player: "player01" });
+    document.getElementById("p2ok").onclick = () => s.emit("sc:success", { player: "player02" });

@@ -1,0 +1,26 @@
+extends layout
+
+block content
+  h1 Input (demo)
+  div
+    button#p1 P1 Gift01 +1
+    button#p2 P2 Gift02 +1
+  pre#view
+
+  script(src="/socket.io/socket.io.js")
+  script.
+    const s = io("/input");
+    const view = document.getElementById("view");
+
+    const snap = {
+      player01: { Gift01: 0, Gift02: 0, Gift03: 0, Gift04: 0 },
+      player02: { Gift01: 0, Gift02: 0, Gift03: 0, Gift04: 0 }
+    };
+
+    document.getElementById("p1").onclick = () => snap.player01.Gift01++;
+    document.getElementById("p2").onclick = () => snap.player02.Gift02++;
+
+    setInterval(() => {
+      s.emit("snapshot", snap);
+      view.textContent = JSON.stringify(snap, null, 2);
+    }, 250);

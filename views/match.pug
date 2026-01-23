@@ -1,0 +1,693 @@
+h1.title.is-1.text-center 試合管理
+
+.MatchTimerPanel
+    .Timers 
+        .ItemTitle.ItemText 試合時間: 
+        h2#MatchTimer.ItemText 88:88
+    .buttons.are-large 
+        button.button.is-link 試合開始
+        button.button.is-warning(disabled) ポーズ
+        button.button.is-danger 試合リセット
+
+//- Player情報
+.Players.fixrd-grid.has-3-cols 
+    .grid 
+
+        //- player01
+        #Player01.cell.box 
+            .grid 
+                figure.PlalayerImage-solo.image.is-1by1 
+                    img#player01img(src="https://bulma.io/assets/images/placeholders/256x256.png")
+                figure.PlalayerImage-duo.image.is-1by1.nondisplay  
+                    img#player03img(src="https://bulma.io/assets/images/placeholders/256x256.png")
+            h1#Player01Name.margintop1-5.title.is-1.text-center.cell Player01
+            .Scores
+                .ScoreTitleText.ItemText.text-center Score: 
+                #Player01Score.ScoreText.ItemText.text-center 888,888
+            input.margintop1-5.input.is-large(type="text", placeholder="スコア調整")
+            .fixed-grid.has-3-cols
+                .grid
+                    button.margintop1-5.button.cell +10,000
+                    button.margintop1-5.button.cell +5,000
+                    button.margintop1-5.button.cell +1,000
+        
+        //- 中央セル
+        .MatchCenterItem.fixed-grid.has-1-cols
+            .grid 
+                h1.title.is-1.text-center.cell VS 
+                button.margintop1-5.button.cell.is-success.is-large(disabled) 結果表示
+                button.margintop1-5.button.cell.is-primary.is-light.is-large スコア調整
+                button.margintop1-5.button.cell.is-warning.is-dark.is-large スコアリセット
+
+        //- player02
+        #Player02.cell.box 
+            .grid 
+                figure.PlalayerImage-solo.image.is-1by1 
+                    img#player02img(src="https://bulma.io/assets/images/placeholders/256x256.png")
+                figure.PlalayerImage-duo.image.is-1by1.nondisplay  
+                    img#player03img(src="https://bulma.io/assets/images/placeholders/256x256.png")
+            h1#Player01Name.margintop1-5.title.is-1.text-center.cell Player01
+            .Scores
+                .ScoreTitleText.ItemText.text-center Score: 
+                #Player02Score.ScoreText.ItemText.text-center 888,888
+            input.margintop1-5.input.is-large(type="text", placeholder="スコア調整")
+            .fixed-grid.has-3-cols
+                .grid
+                    button.margintop1-5.button.cell +10,000
+                    button.margintop1-5.button.cell +5,000
+                    button.margintop1-5.button.cell +1,000
+
+.SCPanel.box 
+    .MatchTimerPanel
+        .Timers
+            .ItemTitle.ItemText スピチャレ時間: 
+            #SCTimer.ItemText 88:88
+        .buttons.are-large 
+            button.button.is-link(disabled) スピチャレ開始
+
+    .fixed-grid.has-3-cols.margintop1-5
+        .marginlr4.grid 
+            .cell 
+                .MatchTimerPanel
+                    .Timers
+                        .ItemTitle.ItemText ボーナス時間: 
+                        #SCBonusTimerPlayer01.ItemText 88:88
+            .cell.is-col-start-3
+                .MatchTimerPanel
+                    .Timers
+                        .ItemTitle.ItemText ボーナス時間: 
+                        #SCBonusTimerPlayer01.ItemText 88:88
+
+    .fixed-grid.has-3-cols.margintop1-5
+        .marginlr4.grid
+            button.cell.button.is-primary.is-large(disabled) スピチャレ成功
+            button.cell.button.is-primary.is-large.is-col-start-3(disabled) スピチャレ成功
+
+    .box 
+        h1.marginlr4.title.is-1 試合履歴
+        .table_box.marginlr4.marginbottom10
+            table.table.is-fullwidth
+                thead.sticky
+                    tr 
+                        th 日時
+                        th 試合ステータス
+                        th Left Player Name 
+                        th Left Player Score 
+                        th Right Player Name 
+                        th Right Player Score 
+                tfoot 
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th 
+                            | テストプレイヤー01
+                            br 
+                            | テストプレイヤー03
+                        th 888,888,888,888
+                        th 
+                            | テストプレイヤー02
+                            br 
+                            | テストプレイヤー04
+                        th 888,888,888,888
+
+                    tr 
+                        th 8888/88/88 88:88
+                        th キャンセル
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th キャンセル
+                        th 
+                            | テストプレイヤー01
+                            br 
+                            | テストプレイヤー03
+                        th 888,888,888,888
+                        th 
+                            | テストプレイヤー02
+                            br 
+                            | テストプレイヤー04
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888
+                        
+                    tr 
+                        th 8888/88/88 88:88
+                        th 終了
+                        th テストプレイヤー01
+                        th 888,888,888,888
+                        th テストプレイヤー02
+                        th 888,888,888,888

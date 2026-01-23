@@ -1,0 +1,18 @@
+extends layout
+
+block content
+  h1 HUD
+  pre#view
+
+  script(src="/socket.io/socket.io.js")
+  script.
+    const view = document.getElementById("view");
+    const s = io("/hud");
+    const render = (x) => view.textContent = JSON.stringify(x, null, 2);
+
+    s.on("state:init", render);
+    s.on("state:update", render);
+
+    s.on("effect:queue", (q) => console.log("effect queue", q));
+    s.on("pause:show", () => console.log("pause show"));
+    s.on("pause:hide", () => console.log("pause hide"));
