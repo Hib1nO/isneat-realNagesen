@@ -28,7 +28,7 @@ h1.title.is-1.text-center 試合のプレイヤー設定
                             option テストユーザー02
                             option テストユーザー03
                             option テストユーザー04
-            .cell 
+            .cell.is-row-start-2
                 label.label Left Player03
                 .control 
                     .select.is-fullwidth
@@ -47,24 +47,66 @@ h1.title.is-1.text-center 試合のプレイヤー設定
                             option テストユーザー03
                             option テストユーザー04
 
-h1.title.is-1.text-center 試合設定
-.SettingItemAre
-    
-    div
-        label.label 試合時間
-        .MatchTimerSettingsAre
-            .MatchTimerSettings
-                input.input(type="text", placeholder="Text input")
-            .MatchTimerSettingsTitle 分
-            .MatchTimerSettings
-                input.input(type="text", placeholder="Text input")
-            .MatchTimerSettingsTitle 秒
+        .cell.is-row-start-3.margintop1-5
+            .buttons
+                button.button.is-link 保存
+                button.button.is-link.is-light キャンセル
 
-        label.label スピチャレ時間
-        .SCTimerSettingsAre 
-            .MatchTimerSettings
-                input.input(type="text", placeholder="Text input")
-            .MatchTimerSettingsTitle 分
-            .MatchTimerSettings
-                input.input(type="text", placeholder="Text input")
-            .MatchTimerSettingsTitle 秒
+h1.title.is-1.text-center.margintop1-5 試合設定
+.SettingItemAre.fixed-grid.has-2-cols
+    .grid
+        .cell
+            label.label 試合時間
+            .MatchTimerSettingsAre
+                .MatchTimerSettings
+                    input.input(type="number", placeholder="Text input")
+                .MatchTimerSettingsTitle 分
+                .MatchTimerSettings
+                    input.input(type="number", placeholder="Text input")
+                .MatchTimerSettingsTitle 秒
+
+        .cell.is-row-start-2.margintop1-5
+            label.label スピチャレ時間
+            .SCTimerSettingsAre 
+                .MatchTimerSettings
+                    input.input(type="number", placeholder="Text input")
+                .MatchTimerSettingsTitle 分
+                .MatchTimerSettings
+                    input.input(type="number", placeholder="Text input")
+                .MatchTimerSettingsTitle 秒
+
+        .cell.is-row-start-3.margintop1-5
+            label.label スピチャボーナス時間
+            .SCTimerSettingsAre 
+                .MatchTimerSettings
+                    input.input(type="number", placeholder="Text input")
+                .MatchTimerSettingsTitle 分
+                .MatchTimerSettings
+                    input.input(type="number", placeholder="Text input")
+                .MatchTimerSettingsTitle 秒
+
+        .cell.is-row-start-4.margintop1-5
+            label.label スピチャ自動開始
+            .control
+                label.radio
+                    input(type="radio", name="answer")
+                    | 有効
+                label.radio
+                    input(type="radio", name="answer")
+                    | 無効
+
+        .cell.is-row-start-5.margintop1-5
+            label.label スピチャ開始時間
+            .SCTimerSettingsAre 
+                .MatchTimerSettingsTitle 残り
+                .MatchTimerSettings
+                    input.input(type="number", placeholder="Text input")
+                .MatchTimerSettingsTitle 分
+                .MatchTimerSettings
+                    input.input(type="number", placeholder="Text input")
+                .MatchTimerSettingsTitle 秒
+
+        .cell.is-row-start-6.margintop1-5
+            .buttons
+                button.button.is-link 保存
+                button.button.is-link.is-light キャンセル
