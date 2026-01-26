@@ -22,11 +22,15 @@ body
                 a
                     span プレイヤー設定
 
-    #MatchPanel.nondisplay
-        include match.pug
+    .marginlr4
+        #MatchPanel
+            include match.pug
 
-    #SettingsPanel  
-        include settings.pug
+        #SettingsPanel
+            include settings.pug
+
+        #PlayersSettingsPanel  
+            include players.pug
 
     footer.footer 
         .content.has-text-centered 

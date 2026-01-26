@@ -1,0 +1,79 @@
+h1.title.is-1.text-center プレイヤー設定
+
+.filde.margintop1-5
+    .fixed-grid.has-4-cols
+        .grid 
+            h2.cell.title.is-2.right-text Player: 
+            .cell.is-col-span-2
+                //- label.label Player 
+                .select.is-fullwidth.is-large
+                    select
+                        option テストユーザー01
+                        option テストユーザー02
+                        option テストユーザー03
+                        option テストユーザー04
+            
+            .cell 
+                button.button.is-large.is-info 新規
+
+            .cell 
+                h3.cell.title.is-3.right-text PlayerName: 
+
+            .cell.is-col-span-2
+                input.input.is-medium
+
+            .cell.is-row-start-3.PlayerImageSettingTitle
+                h3.cell.title.is-3.right-text PlayerImage: 
+
+            .cell.is-row-start-3.tbcenter-block
+                .file.has-name
+                    label.file-label
+                        input.file-input(type="file", name="resume")
+                        span.file-cta
+                            span.file-icon
+                            i.fas.fa-upload
+                            span.file-label Choose a file…
+                        span.file-name Screen Shot 2017-07-29 at 15.54.25.png
+
+            .cell.is-row-start-3
+                figure.image.is-128x128
+                    img(src="https://bulma.io/assets/images/placeholders/256x256.png")
+
+            .cell.buttons.is-row-start-4.right-block
+                button.button.is-link 保存
+                button.button キャンセル
+
+.modal
+    .modal-background
+    .modal-card
+        header.modal-card-head
+            p.modal-card-title New Player
+            button.delete(aria-label="close")
+        section.modal-card-body
+            .fixed-grid.has-4-cols
+                .grid 
+                    .cell.tbcenter-block
+                        h5.cell.title.is-5.right-text PlayerName:
+                    .cell.is-col-span-3
+                        input.input.is-medium
+
+                    .cell.tbcenter-block
+                        h5.cell.title.is-5.right-text PlayerImage:
+                    .cell.is-col-span-3
+                        .file.has-name
+                            label.file-label
+                                input.file-input(type="file", name="resume")
+                                span.file-cta
+                                    span.file-icon
+                                    i.fas.fa-upload
+                                    span.file-label Choose a file…
+                                span.file-name Screen Shot 2017-07-29 at 15.54.25.png
+
+                    .cell.is-col-span-3.is-col-start-2
+                        figure.image.is-128x128
+                            img(src="https://bulma.io/assets/images/placeholders/256x256.png")
+
+        footer.modal-card-foot
+            .buttons
+                button.button.is-link 保存
+                button.button キャンセル
