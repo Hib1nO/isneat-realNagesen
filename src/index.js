@@ -29,14 +29,22 @@ const db = createDb(baseConfig);
 //    ※ timer/gifts 等は settings 側で管理
 // ------------------------------
 const DEFAULT_SETTINGS = {
-  timer: { defaultSeconds: 60 },
+  timer: { defaultSeconds: 360 },
   gifts: {
     // 初期例（不要なら空でもOK）
     Gift01: { unitScore: 10, effectVideos: [] },
     Gift02: { unitScore: 30, effectVideos: [] },
     Gift03: { unitScore: 100, effectVideos: [] },
     Gift04: { unitScore: 300, effectVideos: [] }
-  }
+  },
+  sc: {
+    intervalSeconds: 120,
+    sctimerSeconds: 60,
+    autoStart: true,
+    autoStartTime: 240,
+    scMagnification: 3
+  },
+  lastBonusMagnification: 5,
 };
 
 let settings = null;
@@ -52,6 +60,7 @@ if (db.enabled) {
 // 4) runtimeConfig = baseConfig + settings(DB)
 // ------------------------------
 const config = buildRuntimeConfig(baseConfig, settings);
+console.log(config)
 
 // state は gifts/timer を使うので runtimeConfig で初期化
 const state = createInitialState(config);
@@ -67,7 +76,7 @@ app.set("view engine", "pug");
 app.use("/assets", express.static("public"));
 
 app.get("/", (req, res) => res.redirect("/admin"));
-app.get("/admin", (req, res) => res.render("testhtml", { title: "Admin" }));
+app.get("/admin", (req, res) => res.render("admin", { title: "Admin" }));
 app.get("/hud", (req, res) => res.render("hud", { title: "HUD" }));
 app.get("/input", (req, res) => res.render("input", { title: "Input" }));
 
@@ -98,7 +107,8 @@ ioInput.on("connection", (socket) => {
 ioAdmin.on("connection", (socket) => {
   socket.emit("state:init", getPublicState(state));
 
-  socket.on("timer:start", ({ seconds }) => {
+  socket.on("timer:start", ({}) => {
+    var seconds = config.timer.defaultSeconds
     handleTimerStart({ ioAdmin, ioHud, state, seconds });
   });
 
@@ -144,12 +154,14 @@ ioAdmin.on("connection", (socket) => {
     state.magnification[player] = m;
   });
 
-  socket.on("sc:start", ({ intervalSec, mainSec, magnification }) => {
-    sc.start({
-      intervalSec: Number(intervalSec ?? 10),
-      mainSec: Number(mainSec ?? 10),
-      magnification: Number(magnification ?? 2)
-    });
+  socket.on("sc:start", () => {
+    if(!config.sc.autoStart){
+      sc.start({
+        intervalSec: Number(config.sc.intervalSeconds ?? 10),
+        mainSec: Number(config.sc.sctimerSeconds ?? 10),
+        magnification: Number(config.sc.scMagnification ?? 2)
+      });
+    }
   });
 
   socket.on("sc:success", ({ player }) => {
@@ -164,7 +176,7 @@ ioHud.on("connection", (socket) => {
 
 // loops
 startTick({ ioAdmin, ioHud, state, config });
-startTimerLoop({ ioAdmin, ioHud, state });
+startTimerLoop({ ioAdmin, ioHud, state, config, sc });
 
 server.listen(config.port ?? 8088, () => {
   console.log(`[server] listening on http://localhost:${config.port ?? 8088}`);

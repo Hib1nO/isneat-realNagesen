@@ -39,7 +39,8 @@ export function buildRuntimeConfig(baseConfig, dbSettings) {
     gifts: s.gifts ?? {},
 
     // 将来拡張: s.sc などもここで合成
-    sc: s.sc ?? undefined
+    sc: s.sc ?? undefined,
+    lastBonusMagnification: s.lastBonusMagnification ?? 5
   };
 
   // giftsのキー一覧（集計で使う）

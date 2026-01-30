@@ -9,6 +9,31 @@ export function createInitialState(config) {
     timerPause: false,
     timerCount: config.timer.defaultSeconds,
 
+    // matchsettings
+    matchFormat: 1,
+    matchplayers: {
+      player01: {
+        id: null,
+        PlayerName: "",
+        PlayerImg: null
+      },
+      player02: {
+        id: null,
+        PlayerName: "",
+        PlayerImg: null
+      },
+      player03: {
+        id: null,
+        PlayerName: "",
+        PlayerImg: null
+      },
+      player04: {
+        id: null,
+        PlayerName: "",
+        PlayerImg: null
+      },
+    },
+
     // score
     total: { player01: 0, player02: 0 },
     magnification: { player01: 1, player02: 1 },
@@ -23,9 +48,11 @@ export function createInitialState(config) {
     // speed challenge
     sc: {
       process: false,
-      intervalSec: 0,
-      mainSec: 0,
-      magnification: 1,
+      intervalSec: config.sc.intervalSeconds,
+      mainSec: config.sc.sctimerSeconds,
+      magnification: config.sc.scMagnification,
+      autoStart: config.sc.autoStart,
+      autoStartTime: config.sc.autoStartTime,
       success: { player01: false, player02: false }
     }
   };
@@ -110,6 +137,10 @@ export function getPublicState(state) {
       processing: state.timerProcessing,
       pause: state.timerPause,
       count: state.timerCount
+    },
+    matchsettings: {
+      matchformat: state.matchFormat,
+      matchplayers: state.matchplayers
     },
     score: {
       player01: state.total.player01,

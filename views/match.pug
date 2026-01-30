@@ -20,16 +20,30 @@ h1.title.is-1.text-center 試合管理
                     img#player01img(src="https://bulma.io/assets/images/placeholders/256x256.png")
                 figure.PlalayerImage-duo.image.is-1by1.nondisplay  
                     img#player03img(src="https://bulma.io/assets/images/placeholders/256x256.png")
+
             h1#Player01Name.margintop1-5.title.is-1.text-center.cell Player01
+
             .Scores
                 .ScoreTitleText.ItemText.text-center Score: 
                 #Player01Score.ScoreText.ItemText.text-center 888,888
+
             input.margintop1-5.input.is-large(type="number", placeholder="スコア調整")
+
             .fixed-grid.has-3-cols
                 .grid
                     button.margintop1-5.button.cell +10,000
                     button.margintop1-5.button.cell +5,000
                     button.margintop1-5.button.cell +1,000
+
+                .MatchTimerPanel
+                    .Timers
+                        .ItemTitle.ItemText 現在の倍率: 
+                        #SCBonusTimerPlayer01.ItemText 1
+
+            .fixed-grid.has-2-cols.margintop1-5
+                .grid
+                    button.button.cell.is-warning ラストボーナス開始
+                    button.button.cell.is-danger(disabled) ラストボーナス終了
         
         //- 中央セル
         .MatchCenterItem.fixed-grid.has-1-cols
@@ -46,16 +60,30 @@ h1.title.is-1.text-center 試合管理
                     img#player02img(src="https://bulma.io/assets/images/placeholders/256x256.png")
                 figure.PlalayerImage-duo.image.is-1by1.nondisplay  
                     img#player03img(src="https://bulma.io/assets/images/placeholders/256x256.png")
+
             h1#Player01Name.margintop1-5.title.is-1.text-center.cell Player01
+
             .Scores
                 .ScoreTitleText.ItemText.text-center Score: 
                 #Player02Score.ScoreText.ItemText.text-center 888,888
+
             input.margintop1-5.input.is-large(type="number", placeholder="スコア調整")
+
             .fixed-grid.has-3-cols
                 .grid
                     button.margintop1-5.button.cell +10,000
                     button.margintop1-5.button.cell +5,000
                     button.margintop1-5.button.cell +1,000
+
+                .MatchTimerPanel
+                    .Timers
+                        .ItemTitle.ItemText 現在の倍率: 
+                        #SCBonusTimerPlayer01.ItemText 1
+
+            .fixed-grid.has-2-cols.margintop1-5
+                .grid
+                    button.button.cell.is-warning ラストボーナス開始
+                    button.button.cell.is-danger(disabled) ラストボーナス終了
 
 .SCPanel.box 
     .MatchTimerPanel

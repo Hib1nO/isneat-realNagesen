@@ -20,7 +20,7 @@ block content
     s.on("state:update", log);
     s.on("notify", (m) => console.log("notify", m));
 
-    document.getElementById("start").onclick = () => s.emit("timer:start", { seconds: 60 });
+    document.getElementById("start").onclick = () => s.emit("timer:start");
     document.getElementById("pause").onclick = () => s.emit("timer:pauseToggle");
     document.getElementById("reset").onclick = () => s.emit("match:reset");
 
