@@ -8,6 +8,28 @@ function dbGuard(db, res) {
   return true;
 }
 
+function applySettingsToRuntime({ config, state, settings }) {
+  if (!settings || typeof settings !== "object") return;
+
+  // 反映対象（必要に応じて増やせます）
+  if (settings.timer) config.timer = settings.timer;
+  if (settings.gifts) config.gifts = settings.gifts;
+
+  // gifts のキー一覧を再生成
+  config.giftKeys = Object.keys(config.gifts || {});
+
+  // lastSnapshot を giftKeys に合わせて作り直す（既存値は引き継ぐ）
+  for (const player of ["player01", "player02"]) {
+    const prev = state.lastSnapshot?.[player] || {};
+    const next = {};
+    for (const k of config.giftKeys) next[k] = Number(prev[k] ?? 0);
+    state.lastSnapshot[player] = next;
+  }
+  const def = Number(config.timer?.defaultSeconds);
+  if (Number.isFinite(def) && def >= 0) state.timerCount = def;
+  if (settings.sc !== undefined) config.sc = settings.sc;
+}
+
 export function createApiRouter({ state, config }) {
   const router = express.Router();
 
@@ -99,8 +121,11 @@ export function createApiRouter({ state, config }) {
   });
 
   router.put("/settings", express.json(), async (req, res) => {
-    if (!dbGuard(db, res)) return;
+    
+    if (!state.timerProcessing && !state.matchProcess) return res.status(503).json({ ok: false, message: "試合を終了してから保存してください。" });
+    if (!dbGuard(db, res)) return res.status(503).json({ ok: false, message: "データ保存を利用していません。" });
     const saved = await db.enqueue(() => db.setSettings(req.body || {}));
+    applySettingsToRuntime({ config, state, settings: saved });
     res.json({ ok: true, settings: saved });
   });
 

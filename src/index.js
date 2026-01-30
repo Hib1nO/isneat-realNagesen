@@ -45,6 +45,29 @@ const DEFAULT_SETTINGS = {
     scMagnification: 3
   },
   lastBonusMagnification: 5,
+  matchformat: 1,
+  matchplayers: {
+    player01: {
+      id: null,
+      PlayerName: "",
+      PlayerImg: null
+    },
+    player02: {
+      id: null,
+      PlayerName: "",
+      PlayerImg: null
+    },
+    player03: {
+      id: null,
+      PlayerName: "",
+      PlayerImg: null
+    },
+    player04: {
+      id: null,
+      PlayerName: "",
+      PlayerImg: null
+    },
+  },
 };
 
 let settings = null;
@@ -60,10 +83,13 @@ if (db.enabled) {
 // 4) runtimeConfig = baseConfig + settings(DB)
 // ------------------------------
 const config = buildRuntimeConfig(baseConfig, settings);
-console.log(config)
+console.log("config");
+console.log(config);
 
 // state は gifts/timer を使うので runtimeConfig で初期化
 const state = createInitialState(config);
+console.log("state");
+console.log(state);
 
 const app = express();
 app.use(cors({ origin: config.corsOrigin ?? "*" }));
@@ -76,7 +102,7 @@ app.set("view engine", "pug");
 app.use("/assets", express.static("public"));
 
 app.get("/", (req, res) => res.redirect("/admin"));
-app.get("/admin", (req, res) => res.render("admin", { title: "Admin" }));
+app.get("/admin", (req, res) => res.render("testhtml", { title: "Admin" }));
 app.get("/hud", (req, res) => res.render("hud", { title: "HUD" }));
 app.get("/input", (req, res) => res.render("input", { title: "Input" }));
 

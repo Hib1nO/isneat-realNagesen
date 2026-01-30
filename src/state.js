@@ -11,28 +11,7 @@ export function createInitialState(config) {
 
     // matchsettings
     matchFormat: 1,
-    matchplayers: {
-      player01: {
-        id: null,
-        PlayerName: "",
-        PlayerImg: null
-      },
-      player02: {
-        id: null,
-        PlayerName: "",
-        PlayerImg: null
-      },
-      player03: {
-        id: null,
-        PlayerName: "",
-        PlayerImg: null
-      },
-      player04: {
-        id: null,
-        PlayerName: "",
-        PlayerImg: null
-      },
-    },
+    matchplayers: config.matchplayers,
 
     // score
     total: { player01: 0, player02: 0 },
@@ -50,7 +29,6 @@ export function createInitialState(config) {
       process: false,
       intervalSec: config.sc.intervalSeconds,
       mainSec: config.sc.sctimerSeconds,
-      magnification: config.sc.scMagnification,
       autoStart: config.sc.autoStart,
       autoStartTime: config.sc.autoStartTime,
       success: { player01: false, player02: false }

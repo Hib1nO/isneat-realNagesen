@@ -40,7 +40,10 @@ export function buildRuntimeConfig(baseConfig, dbSettings) {
 
     // 将来拡張: s.sc などもここで合成
     sc: s.sc ?? undefined,
-    lastBonusMagnification: s.lastBonusMagnification ?? 5
+    lastBonusMagnification: s.lastBonusMagnification ?? 5,
+    matchformat: s.matchformat ?? 1,
+    matchplayers: s.matchplayers ?? { player01: { id: null, PlayerName: "", PlayerImg: null }, player02: { id: null, PlayerName: "", PlayerImg: null }, player03: { id: null, PlayerName: "", PlayerImg: null }, player04: { id: null, PlayerName: "", PlayerImg: null }},
+
   };
 
   // giftsのキー一覧（集計で使う）
