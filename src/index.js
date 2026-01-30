@@ -4,7 +4,7 @@ import cors from "cors";
 import path from "path";
 import { Server } from "socket.io";
 
-import { loadConfig } from "./config.js";
+import { loadBaseConfig, buildRuntimeConfig } from "./config.js";
 import { createInitialState, resetMatch, getPublicState } from "./state.js";
 import { startTick } from "./tick.js";
 import { startTimerLoop, handleTimerStart, handleTimerPauseToggle } from "./timer.js";
@@ -12,9 +12,49 @@ import { createSCController } from "./sc.js";
 import { createDb } from "./db.js";
 import { createApiRouter } from "./routes/api.js";
 
-const config = loadConfig();
+
+
+// ------------------------------
+// 1) baseConfig は config.json から（最小項目のみ）
+// ------------------------------
+const baseConfig = loadBaseConfig();
+
+// ------------------------------
+// 2) DB 初期化（baseConfig に db.dir 等がある）
+// ------------------------------
+const db = createDb(baseConfig);
+
+// ------------------------------
+// 3) settings を DB から読み込み（無ければ初期値を作る）
+//    ※ timer/gifts 等は settings 側で管理
+// ------------------------------
+const DEFAULT_SETTINGS = {
+  timer: { defaultSeconds: 60 },
+  gifts: {
+    // 初期例（不要なら空でもOK）
+    Gift01: { unitScore: 10, effectVideos: [] },
+    Gift02: { unitScore: 30, effectVideos: [] },
+    Gift03: { unitScore: 100, effectVideos: [] },
+    Gift04: { unitScore: 300, effectVideos: [] }
+  }
+};
+
+let settings = null;
+if (db.enabled) {
+  settings = await db.getSettings();
+  if (!settings) {
+    settings = await db.enqueue(() => db.setSettings(DEFAULT_SETTINGS));
+    console.log("[db] settings was empty -> seeded DEFAULT_SETTINGS");
+  }
+}
+
+// ------------------------------
+// 4) runtimeConfig = baseConfig + settings(DB)
+// ------------------------------
+const config = buildRuntimeConfig(baseConfig, settings);
+
+// state は gifts/timer を使うので runtimeConfig で初期化
 const state = createInitialState(config);
-const db = createDb(config);
 
 const app = express();
 app.use(cors({ origin: config.corsOrigin ?? "*" }));
@@ -31,7 +71,7 @@ app.get("/admin", (req, res) => res.render("testhtml", { title: "Admin" }));
 app.get("/hud", (req, res) => res.render("hud", { title: "HUD" }));
 app.get("/input", (req, res) => res.render("input", { title: "Input" }));
 
-app.use("/api", createApiRouter({ state, config }));
+app.use("/api", createApiRouter({ state, config, db }));
 
 const server = http.createServer(app);
 
@@ -67,15 +107,19 @@ ioAdmin.on("connection", (socket) => {
   });
 
   socket.on("match:reset", async () => {
-    if (db.enabled) {
-      await db.enqueue(async () => {
-        await db.saveMatchResult({
+    // ★ matchesに1試合ごとにID採番して保存
+    if (db.enabled && db.createMatch) {
+      const saved = await db.enqueue(() =>
+        db.createMatch({
           total: { ...state.total },
           timerCount: state.timerCount,
           endedAt: Date.now()
-        });
+        })
+      );
+      ioAdmin.emit("notify", {
+        type: "info",
+        message: saved?.matchId ? `Saved match result. matchId=${saved.matchId}` : "Saved match result."
       });
-      ioAdmin.emit("notify", { type: "info", message: "Saved match result." });
     }
 
     resetMatch(state, config);
@@ -122,7 +166,7 @@ ioHud.on("connection", (socket) => {
 startTick({ ioAdmin, ioHud, state, config });
 startTimerLoop({ ioAdmin, ioHud, state });
 
-server.listen(config.port ?? 3000, () => {
-  console.log(`[server] listening on http://localhost:${config.port ?? 3000}`);
+server.listen(config.port ?? 8088, () => {
+  console.log(`[server] listening on http://localhost:${config.port ?? 8088}`);
   console.log(`[pages] /admin /hud /input`);
 });

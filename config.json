@@ -2,32 +2,6 @@
   "port": 8088,
   "corsOrigin": "*",
   "tickMs": 250,
-  "timer": {
-    "defaultSeconds": 60
-  },
-  "gifts": {
-    "Gift01": {
-      "unitScore": 10,
-      "effectVideos": [
-        "https://example.com/v1.mp4"
-      ]
-    },
-    "Gift02": {
-      "unitScore": 30,
-      "effectVideos": []
-    },
-    "Gift03": {
-      "unitScore": 100,
-      "effectVideos": [
-        "https://example.com/v2.mp4",
-        "https://example.com/v3.mp4"
-      ]
-    },
-    "Gift04": {
-      "unitScore": 300,
-      "effectVideos": []
-    }
-  },
   "effectQueue": {
     "maxQueueLength": 200,
     "maxPushPerTick": 20

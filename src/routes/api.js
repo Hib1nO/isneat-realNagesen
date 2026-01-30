@@ -1,5 +1,13 @@
 import express from "express";
 
+function dbGuard(db, res) {
+  if (!db?.enabled) {
+    res.status(503).json({ ok: false, message: "db is disabled (config.db.enabled=false)" });
+    return false;
+  }
+  return true;
+}
+
 export function createApiRouter({ state, config }) {
   const router = express.Router();
 
@@ -31,6 +39,69 @@ export function createApiRouter({ state, config }) {
       }
     }
     res.json({ ok: true });
+  });
+
+  // =========================
+  // ★ DB Read/Write APIs
+  // =========================
+
+  // --- matches ---
+  router.get("/matches", async (req, res) => {
+    if (!dbGuard(db, res)) return;
+    const limit = Number(req.query.limit ?? 50);
+    const skip = Number(req.query.skip ?? 0);
+    const items = await db.listMatches({ limit, skip });
+    res.json({ ok: true, items });
+  });
+
+  router.get("/matches/:matchId", async (req, res) => {
+    if (!dbGuard(db, res)) return;
+    const item = await db.getMatchById(req.params.matchId);
+    if (!item) return res.status(404).json({ ok: false, message: "not found" });
+    res.json({ ok: true, item });
+  });
+
+  // --- players ---
+  router.get("/players", async (req, res) => {
+    if (!dbGuard(db, res)) return;
+    const limit = Number(req.query.limit ?? 200);
+    const skip = Number(req.query.skip ?? 0);
+    const items = await db.listPlayers({ limit, skip });
+    res.json({ ok: true, items });
+  });
+
+  router.get("/players/:playerId", async (req, res) => {
+    if (!dbGuard(db, res)) return;
+    const item = await db.getPlayerById(req.params.playerId);
+    if (!item) return res.status(404).json({ ok: false, message: "not found" });
+    res.json({ ok: true, item });
+  });
+
+  router.post("/players", express.json(), async (req, res) => {
+    if (!dbGuard(db, res)) return;
+    const { name = "", key = null, imageUrl = "" } = req.body || {};
+    const created = await db.enqueue(() => db.createPlayer({ name, key, imageUrl }));
+    res.status(201).json({ ok: true, item: created });
+  });
+
+  router.put("/players/:playerId", express.json(), async (req, res) => {
+    if (!dbGuard(db, res)) return;
+    const updated = await db.enqueue(() => db.updatePlayer(req.params.playerId, req.body || {}));
+    if (!updated) return res.status(404).json({ ok: false, message: "not found" });
+    res.json({ ok: true, item: updated });
+  });
+
+  // --- settings ---
+  router.get("/settings", async (req, res) => {
+    if (!dbGuard(db, res)) return;
+    const settings = await db.getSettings();
+    res.json({ ok: true, settings });
+  });
+
+  router.put("/settings", express.json(), async (req, res) => {
+    if (!dbGuard(db, res)) return;
+    const saved = await db.enqueue(() => db.setSettings(req.body || {}));
+    res.json({ ok: true, settings: saved });
   });
 
   return router;

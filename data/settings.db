@@ -1,0 +1,2 @@
+{"key":"app","value":{"timer":{"defaultSeconds":60},"gifts":{"Gift01":{"unitScore":10,"effectVideos":[]},"Gift02":{"unitScore":30,"effectVideos":[]},"Gift03":{"unitScore":100,"effectVideos":[]},"Gift04":{"unitScore":300,"effectVideos":[]}}},"updatedAt":1769742846931,"_id":"jRXnHNl32vMfvP5V"}
+{"$$indexCreated":{"fieldName":"key","unique":true,"sparse":false}}
