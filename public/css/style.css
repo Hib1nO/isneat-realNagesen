@@ -85,6 +85,11 @@
     height: 40rem;
 }
 
+.gift_table_box {
+    overflow-y: auto;
+    height: 30rem;
+}
+
 .sticky {
   position: sticky;
   top: 0;

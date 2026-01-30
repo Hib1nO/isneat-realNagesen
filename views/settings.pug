@@ -108,7 +108,155 @@ h1.title.is-1.text-center.margintop1-5 試合設定
                     input.input(type="number", placeholder="Text input")
                 .MatchTimerSettingsTitle 秒
 
-        .cell.is-row-start-6.margintop1-5
+        .cell.is-col-span-2.is-row-start-6
+            .grid
+                h3.marginlr4.title.is-3.cell ギフト設定
+                .buttons.cell.right-block
+                    button.button.is-link.is-dark.is-medium.js-modal-trigger(data-target="new-gift-model") 追加
+            .gift_table_box.marginlr4.marginbottom10
+                table.table.is-fullwidth
+                    thead.sticky
+                        tr 
+                            th ID
+                            th 加算スコア
+                            th ギフトエフェクト
+                            th 変更 
+                    tfoot 
+                        tr 
+                            th Gift01
+                            th 10
+                            th なし
+                            th
+                                button.button.js-modal-trigger(data-target="edit-gift-model") 変更
+                        tr 
+                            th Gift01
+                            th 10
+                            th なし
+                            th
+                                button.button.js-modal-trigger(data-target="edit-gift-model") 変更
+                        tr 
+                            th Gift01
+                            th 10
+                            th なし
+                            th
+                                button.button.js-modal-trigger(data-target="edit-gift-model") 変更
+                        tr 
+                            th Gift01
+                            th 10
+                            th なし
+                            th
+                                button.button.js-modal-trigger(data-target="edit-gift-model") 変更
+                        tr 
+                            th Gift01
+                            th 10
+                            th なし
+                            th
+                                button.button.js-modal-trigger(data-target="edit-gift-model") 変更
+                        tr 
+                            th Gift01
+                            th 10
+                            th なし
+                            th
+                                button.button.js-modal-trigger(data-target="edit-gift-model") 変更
+                        tr 
+                            th Gift01
+                            th 10
+                            th なし
+                            th
+                                button.button.js-modal-trigger(data-target="edit-gift-model") 変更
+
+        .cell.is-row-start-7.margintop1-5.marginbottom10
             .buttons
                 button.button.is-link 保存
                 button.button キャンセル
+
+#new-gift-model.modal
+    .modal-background
+    .modal-card
+        header.modal-card-head
+            p.modal-card-title New GIFT
+            button.delete(aria-label="close")
+        section.modal-card-body
+            .fixed-grid.has-4-cols
+                .grid 
+                    .cell.tbcenter-block
+                        h5.cell.title.is-5.right-text ID:
+                    .cell.is-col-span-3
+                        input.input.is-medium
+
+                    .cell.tbcenter-block
+                        h5.cell.title.is-5.right-text Score:
+                    .cell.is-col-span-3
+                        input.input.is-medium
+
+                    .cell.tbcenter-block
+                        h5.cell.title.is-5.right-text PlayerImage:
+                    .cell.is-col-span-3
+                        .file.has-name
+                            label.file-label
+                                input#NewplayerImageInput.file-input(type="file", name="resume")
+                                span.file-cta
+                                    span.file-icon
+                                    i.fas.fa-upload
+                                    span.file-label Choose a file…
+                                span#NewplayerImageFileName.file-name
+
+                    .cell.is-col-start-2.is-row-start-4
+                        figure.image.is-128x128
+                            img#NewplayerImagePreview(src="/assets/img/NoImage.png")
+                    .cell.is-col-start-3.is-row-start-4.is-flex.is-align-items-center
+                        button.button ギフトエフェクト削除
+
+        footer.modal-card-foot
+            .level.is-mobile(style="width: 100%")
+                .level-left
+                    .buttons
+                        button.button.is-link 保存
+                        button.button.modalcancell キャンセル
+
+#edit-gift-model.modal
+    .modal-background
+    .modal-card
+        header.modal-card-head
+            p.modal-card-title Edit GIFT
+            button.delete(aria-label="close")
+        section.modal-card-body
+            .fixed-grid.has-4-cols
+                .grid 
+                    .cell.tbcenter-block
+                        h5.cell.title.is-5.right-text ID:
+                    .cell.is-col-span-3
+                        input.input.is-medium
+
+                    .cell.tbcenter-block
+                        h5.cell.title.is-5.right-text Score:
+                    .cell.is-col-span-3
+                        input.input.is-medium
+
+                    .cell.tbcenter-block
+                        h5.cell.title.is-5.right-text PlayerImage:
+                    .cell.is-col-span-3
+                        .file.has-name
+                            label.file-label
+                                input#NewplayerImageInput.file-input(type="file", name="resume")
+                                span.file-cta
+                                    span.file-icon
+                                    i.fas.fa-upload
+                                    span.file-label Choose a file…
+                                span#NewplayerImageFileName.file-name
+
+                    .cell.is-col-start-2.is-row-start-4
+                        figure.image.is-128x128
+                            img#NewplayerImagePreview(src="/assets/img/NoImage.png")
+                    .cell.is-col-start-3.is-row-start-4.is-flex.is-align-items-center
+                        button.button ギフトエフェクト削除
+
+        footer.modal-card-foot
+            .level.is-mobile(style="width: 100%")
+                .level-left
+                    .buttons
+                        button.button.is-link 保存
+                        button.button.modalcancell キャンセル
+                .level-right
+                    .buttons
+                        button.button.is-danger 削除
