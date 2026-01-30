@@ -16,7 +16,7 @@ h1.title.is-1.text-center プレイヤー設定
             .cell 
                 .buttons
                     button.button.is-large.is-info.js-modal-trigger(data-target="new-player-model") 新規
-                    button.button.is-large.is-primary 更新
+                    button#playerSettingReloadBtn.button.is-large.is-primary 更新
 
             .cell 
                 h3.cell.title.is-3.right-text PlayerName: 
@@ -42,7 +42,7 @@ h1.title.is-1.text-center プレイヤー設定
                     img#playerImagePreview(src="/assets/img/NoImage.png")
 
             .cell.is-row-start-3.PlayerImageDeletBtn
-                button.button.is-medium.is-warning アイコン削除
+                button#playerImgRemoveBtn.button.is-medium.is-warning アイコン削除
 
             .cell.buttons.is-row-start-4.right-block
                 button.button.is-link 保存

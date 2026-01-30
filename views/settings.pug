@@ -1,7 +1,10 @@
 h1.title.is-1.text-center 試合のプレイヤー設定
 
-button.button 更新
+
 .field.SettingItemAre
+    .level-right
+        .buttons
+            button.button.is-primary 更新
     label.label 試合形式
     .control
         .select.is-fullwidth
@@ -56,6 +59,9 @@ button.button 更新
 
 h1.title.is-1.text-center.margintop1-5 試合設定
 .SettingItemAre.fixed-grid.has-2-cols.field
+    .level-right
+        .buttons
+            button.button.is-primary 更新
     .grid
         .cell
             label.label 試合時間
@@ -93,7 +99,7 @@ h1.title.is-1.text-center.margintop1-5 試合設定
                 label.radio
                     input(type="radio", name="answer")
                     | 有効
-                label.radio
+                label.radio.marginl1
                     input(type="radio", name="answer")
                     | 無効
 
@@ -110,10 +116,10 @@ h1.title.is-1.text-center.margintop1-5 試合設定
 
         .cell.is-col-span-2.is-row-start-6
             .grid
-                h3.marginlr4.title.is-3.cell ギフト設定
+                h3.title.is-3.cell ギフト設定
                 .buttons.cell.right-block
-                    button.button.is-link.is-dark.is-medium.js-modal-trigger(data-target="new-gift-model") 追加
-            .gift_table_box.marginlr4.marginbottom10
+                    button.button.is-info.is-medium.js-modal-trigger(data-target="new-gift-model") 追加
+            .gift_table_box.marginbottom10
                 table.table.is-fullwidth
                     thead.sticky
                         tr 
@@ -211,7 +217,7 @@ h1.title.is-1.text-center.margintop1-5 試合設定
             .level.is-mobile(style="width: 100%")
                 .level-left
                     .buttons
-                        button.button.is-link 保存
+                        button.button.is-info 追加
                         button.button.modalcancell キャンセル
 
 #edit-gift-model.modal

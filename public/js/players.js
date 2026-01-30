@@ -50,4 +50,11 @@ $(function () {
     };
     reader.readAsDataURL(file);
   });
+
+  const $playersettingsreloadbtn = $('#playerSettingReloadBtn');
+  const $playerimgremovebtn = $('#playerImgRemoveBtn');
+
+  $playerimgremovebtn.on('click', function () {
+    
+  })
 });
