@@ -4,6 +4,14 @@ head
     title Admin 
     link(rel="stylesheet", href="/assets/css/bulma.min.css")
     link(rel="stylesheet", href="/assets/css/style.css")
+    script(src="/socket.io/socket.io.js")
+    script(src="/assets/js/jquery-4.0.0.min.js")
+    script(src="/assets/js/toast.js")
+    script(src="/assets/js/index.js")
+    script(src="/assets/js/tab.js")
+    script(src="/assets/js/players.js")
+
+
 body 
     section.hero.is-small.is-danger 
         .hero-body
@@ -11,25 +19,25 @@ body
 
     //- ページ切り替えタブ
     #PanelMenuBar.tabs.is-toggle.is-fullwidth.is-large 
-        ul 
+        ul
             li.is-active 
-                a
+                a(href="#MatchPanel")
                     span 試合管理
             li
-                a
+                a(href="#SettingsPanel")
                     span 設定
             li
-                a
+                a(href="#PlayersSettingsPanel")
                     span プレイヤー設定
 
-    .marginlr4
-        #MatchPanel
+    .pages.marginlr4
+        #MatchPanel.page
             include match.pug
 
-        #SettingsPanel
+        #SettingsPanel.page
             include settings.pug
 
-        #PlayersSettingsPanel  
+        #PlayersSettingsPanel.page
             include players.pug
 
     footer.footer 
@@ -37,3 +45,5 @@ body
             p 
                 strong isN'eat Real Tipping System Produced 
                 | by Technical D Inc.
+
+    #toast-container(aria-live="polite" aria-atomic="false")

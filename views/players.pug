@@ -14,7 +14,7 @@ h1.title.is-1.text-center プレイヤー設定
                         option テストユーザー04
             
             .cell 
-                button.button.is-large.is-info 新規
+                button.button.is-large.is-info.js-modal-trigger(data-target="new-player-model") 新規
 
             .cell 
                 h3.cell.title.is-3.right-text PlayerName: 
@@ -28,22 +28,25 @@ h1.title.is-1.text-center プレイヤー設定
             .cell.is-row-start-3.tbcenter-block
                 .file.has-name
                     label.file-label
-                        input.file-input(type="file", name="resume")
+                        input#playerImageInput.file-input(type="file", name="resume")
                         span.file-cta
                             span.file-icon
                             i.fas.fa-upload
                             span.file-label Choose a file…
-                        span.file-name Screen Shot 2017-07-29 at 15.54.25.png
+                        span#playerImageFileName.file-name
 
             .cell.is-row-start-3
                 figure.image.is-128x128
-                    img(src="https://bulma.io/assets/images/placeholders/256x256.png")
+                    img#playerImagePreview(src="/assets/img/NoImage.png")
+
+            .cell.is-row-start-3.PlayerImageDeletBtn
+                button.button.is-medium.is-warning アイコン削除
 
             .cell.buttons.is-row-start-4.right-block
                 button.button.is-link 保存
                 button.button キャンセル
 
-.modal
+#new-player-model.modal
     .modal-background
     .modal-card
         header.modal-card-head
@@ -62,18 +65,18 @@ h1.title.is-1.text-center プレイヤー設定
                     .cell.is-col-span-3
                         .file.has-name
                             label.file-label
-                                input.file-input(type="file", name="resume")
+                                input#NewplayerImageInput.file-input(type="file", name="resume")
                                 span.file-cta
                                     span.file-icon
                                     i.fas.fa-upload
                                     span.file-label Choose a file…
-                                span.file-name Screen Shot 2017-07-29 at 15.54.25.png
+                                span#NewplayerImageFileName.file-name
 
                     .cell.is-col-span-3.is-col-start-2
                         figure.image.is-128x128
-                            img(src="https://bulma.io/assets/images/placeholders/256x256.png")
+                            img#NewplayerImagePreview(src="/assets/img/NoImage.png")
 
         footer.modal-card-foot
             .buttons
                 button.button.is-link 保存
-                button.button キャンセル
+                button.button.modalcancell キャンセル
