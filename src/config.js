@@ -28,10 +28,12 @@ export function loadBaseConfig() {
  * DB(settings) と baseConfig を合成して実行時設定を作る
  * - timer / gifts 等は DB(settings) 側に置く
  */
-export function buildRuntimeConfig(baseConfig, dbSettings) {
+export function buildRuntimeConfig(baseConfig, dbSettings, address) {
   const s = dbSettings || {};
 
   const runtime = {
+    address: address,
+    
     ...baseConfig,
 
     // DB 側で管理する設定（無ければデフォルト）

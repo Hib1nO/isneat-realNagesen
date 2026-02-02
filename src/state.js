@@ -27,8 +27,10 @@ export function createInitialState(config) {
     // speed challenge
     sc: {
       process: false,
-      intervalSec: config.sc.intervalSeconds,
-      mainSec: config.sc.sctimerSeconds,
+      noticeSec: config.sc.noticeSeconds,
+      missionSec: config.sc.missionSeconds,
+      player01BonusSec: config.sc.bonusSeconds,
+      player02BonusSec: config.sc.bonusSeconds,
       autoStart: config.sc.autoStart,
       autoStartTime: config.sc.autoStartTime,
       success: { player01: false, player02: false }
@@ -57,6 +59,7 @@ export function resetMatch(state, config) {
   state.videoQueue.player02 = [];
 
   state.sc.process = false;
+  state.sc.noticeSec = config.sc.noticeSeconds
   state.sc.success.player01 = false;
   state.sc.success.player02 = false;
 }

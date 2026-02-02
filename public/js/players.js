@@ -1,60 +1,49 @@
-$(function () {
-  const $Newplayerinput   = $('#NewplayerImageInput');      // <input type="file" ...>
-  const $NewplayerImagepreview = $('#NewplayerImagePreview');    // <img ...>
-  const $Newplayername    = $('#NewplayerImageFileName');   // （任意）<span class="file-name" ...>
+window.PlayersStore = (function () {
+  let cache = null;
+  let cacheAt = 0;
+  const CACHE_MS = 10000;
 
-  $Newplayerinput.on('change', function () {
-    const file = this.files && this.files[0];
-    if (!file) return;
+  function escapeHtml(s) {
+    return String(s ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
 
-    // 画像以外は弾く
-    if (!file.type || !file.type.match(/^image\//)) {
-      notify("画像ファイルを選択してください", { type: "warning", timeoutMs: 10000 });
-      $(this).val('');
-      return;
+  function load(force) {
+    const now = Date.now();
+    if (!force && cache && (now - cacheAt) < CACHE_MS) {
+      return $.Deferred().resolve(cache).promise();
     }
 
-    // （任意）ファイル名表示を更新
-    if ($Newplayername.length) $Newplayername.text(file.name);
+    return $.ajax({
+      url: "/api/players",
+      method: "GET",
+      dataType: "json"
+    }).then(function (data) {
+      if (!data || !data.ok) {
+        return $.Deferred().reject(data?.message || "players load failed").promise();
+      }
+      cache = data.items || [];
+      cacheAt = now;
+      return cache;
+    });
+  }
 
-    // 画像プレビュー
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      $NewplayerImagepreview.attr('src', e.target.result);
-    };
-    reader.readAsDataURL(file);
-  });
+  function buildOptionsHtml(players) {
+    return (players || [])
+      .map(function (p) {
+        const id = escapeHtml(p.playerId);
+        const name = escapeHtml(p.name || "(no name)");
+        return `<option value="${id}">${name}</option>`;
+      })
+      .join("");
+  }
 
-  const $playerinput   = $('#playerImageInput');      // <input type="file" ...>
-  const $playerImagepreview = $('#playerImagePreview');    // <img ...>
-  const $playername    = $('#playerImageFileName');   // （任意）<span class="file-name" ...>
-
-  $playerinput.on('change', function () {
-    const file = this.files && this.files[0];
-    if (!file) return;
-
-    // 画像以外は弾く
-    if (!file.type || !file.type.match(/^image\//)) {
-      notify("画像ファイルを選択してください", { type: "warning", timeoutMs: 10000 });
-      $(this).val('');
-      return;
-    }
-
-    // （任意）ファイル名表示を更新
-    if ($playername.length) $playername.text(file.name);
-
-    // 画像プレビュー
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      $playerImagepreview.attr('src', e.target.result);
-    };
-    reader.readAsDataURL(file);
-  });
-
-  const $playersettingsreloadbtn = $('#playerSettingReloadBtn');
-  const $playerimgremovebtn = $('#playerImgRemoveBtn');
-
-  $playerimgremovebtn.on('click', function () {
-    
-  })
-});
+  return {
+    load: load,
+    buildOptionsHtml: buildOptionsHtml
+  };
+})();

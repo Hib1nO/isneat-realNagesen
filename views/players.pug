@@ -7,7 +7,7 @@ h1.title.is-1.text-center プレイヤー設定
             .cell.is-col-span-2
                 //- label.label Player 
                 .select.is-fullwidth.is-large
-                    select
+                    select#playerSettingsPlayerList
                         option テストユーザー01
                         option テストユーザー02
                         option テストユーザー03
@@ -22,7 +22,7 @@ h1.title.is-1.text-center プレイヤー設定
                 h3.cell.title.is-3.right-text PlayerName: 
 
             .cell.is-col-span-2
-                input.input.is-medium
+                input#playerSettingsPlayerName.input.is-medium
 
             .cell.is-row-start-3.PlayerImageSettingTitle
                 h3.cell.title.is-3.right-text PlayerImage: 
@@ -45,8 +45,12 @@ h1.title.is-1.text-center プレイヤー設定
                 button#playerImgRemoveBtn.button.is-medium.is-warning アイコン削除
 
             .cell.buttons.is-row-start-4.right-block
-                button.button.is-link 保存
-                button.button キャンセル
+                button#playerSaveBtn.button.is-link 保存
+                button#playerCancelBtn.button キャンセル
+
+            .cell.buttons.is-row-start-4.is-col-start-4
+                .buttons
+                    button#playerDeleteBtn.button.is-danger 削除
 
 #new-player-model.modal
     .modal-background

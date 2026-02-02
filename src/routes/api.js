@@ -1,4 +1,7 @@
 import express from "express";
+import multer from "multer";
+import path from "path";
+import fs from "fs/promises";
 
 function dbGuard(db, res) {
   if (!db?.enabled) {
@@ -6,6 +9,58 @@ function dbGuard(db, res) {
     return false;
   }
   return true;
+}
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB
+  },
+  fileFilter: (req, file, cb) => {
+    // 画像のみ許可
+    if (!file.mimetype?.startsWith("image/")) {
+      return cb(new Error("Only image files are allowed"));
+    }
+    cb(null, true);
+  }
+});
+
+const STRAGE_DIR = path.join(process.cwd(), "public", "strage");
+
+function extFromMimetype(mimetype) {
+  // 必要に応じて追加
+  const map = {
+    "image/png": ".png",
+    "image/jpeg": ".jpg",
+    "image/webp": ".webp",
+    "image/gif": ".gif"
+  };
+  return map[mimetype] || ".bin";
+}
+
+async function savePlayerImage({ playerId, file }) {
+  await fs.mkdir(STRAGE_DIR, { recursive: true });
+
+  const ext = extFromMimetype(file.mimetype);
+  const filename = `${playerId}${ext}`;
+  const filepath = path.join(STRAGE_DIR, filename);
+
+  await fs.writeFile(filepath, file.buffer);
+
+  // あなたのサーバでは app.use("/assets", express.static("public")) なので
+  // 公開URLは /assets/strage/<filename> が自然
+  return `/assets/strage/${filename}`;
+}
+
+// playerId の画像（拡張子違いが残ってても削除できるようにする）
+async function removePlayerImages(playerId) {
+  try {
+    const files = await fs.readdir(STRAGE_DIR);
+    const targets = files.filter((f) => f.startsWith(playerId + "."));
+    await Promise.all(targets.map((f) => fs.unlink(path.join(STRAGE_DIR, f)).catch(() => {})));
+  } catch {
+    // フォルダが無い/権限などは無視（削除の本体を邪魔しない）
+  }
 }
 
 function applySettingsToRuntime({ config, state, settings }) {
@@ -30,7 +85,22 @@ function applySettingsToRuntime({ config, state, settings }) {
   if (settings.sc !== undefined) config.sc = settings.sc;
 }
 
-export function createApiRouter({ state, config }) {
+function applyMatchSettingsToRuntime({ config, state, settings }) {
+  if (!settings || typeof settings !== "object") return;
+
+  // 反映対象（必要に応じて増やせます）
+  if (settings.matchformat) {
+    config.matchformat = settings.matchformat;
+    state.matchformat = settings.matchformat;
+  }
+
+  if (settings.matchplayers !== undefined) {
+    config.matchplayers = settings.matchplayers;
+    state.matchplayers = settings.matchplayers;
+  }
+}
+
+export function createApiRouter({ state, config, db }) {
   const router = express.Router();
 
   // GET /api/player/player01/gift/Gift01
@@ -99,19 +169,65 @@ export function createApiRouter({ state, config }) {
     res.json({ ok: true, item });
   });
 
-  router.post("/players", express.json(), async (req, res) => {
+  router.post("/players", upload.single("image"), async (req, res) => {
     if (!dbGuard(db, res)) return;
-    const { name = "", key = null, imageUrl = "" } = req.body || {};
-    const created = await db.enqueue(() => db.createPlayer({ name, key, imageUrl }));
+
+    if (!req.body.name) return res.status(404).json({ ok: false, message: "名前を入力してください。"})
+
+    const { name = "", key = null } = req.body || {};
+    const file = req.file; // 画像（任意）
+
+    // 1) 先にプレイヤー作成（playerId採番）
+    const created = await db.enqueue(() => db.createPlayer({ name, key, imageUrl: "" }));
+
+    // 2) 画像があれば public/strage に保存して imageUrl 更新
+    if (file) {
+      const imageUrl = await savePlayerImage({ playerId: created.playerId, file });
+      const updated = await db.enqueue(() => db.updatePlayer(created.playerId, { imageUrl }));
+      return res.status(201).json({ ok: true, item: updated });
+    }
+
     res.status(201).json({ ok: true, item: created });
   });
 
-  router.put("/players/:playerId", express.json(), async (req, res) => {
+  router.put("/players/:playerId", upload.single("image"), async (req, res) => {
     if (!dbGuard(db, res)) return;
-    const updated = await db.enqueue(() => db.updatePlayer(req.params.playerId, req.body || {}));
-    if (!updated) return res.status(404).json({ ok: false, message: "not found" });
+
+    const playerId = req.params.playerId;
+    const file = req.file;
+
+    // 1) まずプレイヤーが存在するか確認（任意だがあると親切）
+    const exists = await db.getPlayerById(playerId);
+    if (!exists) return res.status(404).json({ ok: false, message: "player not found" });
+
+    // 2) 画像があれば保存して imageUrl を patch に入れる
+    const patch = { ...(req.body || {}) };
+
+    if (file) {
+      const imageUrl = await savePlayerImage({ playerId, file });
+      patch.imageUrl = imageUrl;
+    }
+
+    // 3) 更新
+    const updated = await db.enqueue(() => db.updatePlayer(playerId, patch));
     res.json({ ok: true, item: updated });
   });
+
+  router.delete("/players/:playerId", async (req, res) => {
+    if (!dbGuard(db, res)) return;
+
+    const playerId = req.params.playerId;
+
+    // DBから削除（db.deletePlayer を実装してください）
+    const removed = await db.enqueue(() => db.deletePlayer(playerId));
+    if (!removed) return res.status(404).json({ ok: false, message: "player not found" });
+
+    // 画像ファイルも削除（任意だが強くおすすめ）
+    await removePlayerImages(playerId);
+
+    res.json({ ok: true });
+  });
+
 
   // --- settings ---
   router.get("/settings", async (req, res) => {
@@ -123,9 +239,31 @@ export function createApiRouter({ state, config }) {
   router.put("/settings", express.json(), async (req, res) => {
     
     if (!state.timerProcessing && !state.matchProcess) return res.status(503).json({ ok: false, message: "試合を終了してから保存してください。" });
-    if (!dbGuard(db, res)) return res.status(503).json({ ok: false, message: "データ保存を利用していません。" });
+    try {
+      applySettingsToRuntime({ config, state, settings: saved });
+    } catch (error) {
+      console.log(error)
+      return res.status(503).json({ ok: false, message: "保存に失敗しました"})
+    }
+
+    if (!dbGuard(db, res)) return res.status(201).json({ ok: true, message: "データ保存を利用していません。" });
     const saved = await db.enqueue(() => db.setSettings(req.body || {}));
-    applySettingsToRuntime({ config, state, settings: saved });
+
+    res.json({ ok: true, settings: saved });
+  });
+
+  router.put("/matchsettings", express.json(), async (req, res) => {
+    
+    try {
+      applySettingsToRuntime({ config, state, settings: saved });
+    } catch (error) {
+      console.log(error)
+      return res.status(503).json({ ok: false, message: "保存に失敗しました"})
+    }
+
+    if (!dbGuard(db, res)) return res.status(201).json({ ok: true, message: "データ保存を利用していません。" });
+    const saved = await db.enqueue(() => db.setSettings(req.body || {}));
+
     res.json({ ok: true, settings: saved });
   });
 

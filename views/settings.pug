@@ -4,7 +4,7 @@ h1.title.is-1.text-center 試合のプレイヤー設定
 .field.SettingItemAre
     .level-right
         .buttons
-            button.button.is-primary 更新
+            button#matchFormatPlayersReload.button.is-primary 更新
     label.label 試合形式
     .control
         .select.is-fullwidth
@@ -53,47 +53,27 @@ h1.title.is-1.text-center 試合のプレイヤー設定
 
         .cell.is-row-start-3.margintop1-5
             .buttons
-                button.button.is-link 保存
-                button.button キャンセル
+                button#matchFormatPlayersSave.button.is-link 保存
+                button#matchFormatPlayersCancell.button キャンセル
 
 
 h1.title.is-1.text-center.margintop1-5 試合設定
 .SettingItemAre.fixed-grid.has-2-cols.field
     .level-right
         .buttons
-            button.button.is-primary 更新
+            button#matchSettingsReload.button.is-primary 更新
     .grid
         .cell
             label.label 試合時間
             .MatchTimerSettingsAre
                 .MatchTimerSettings
-                    input.input(type="number", placeholder="Text input")
+                    input#matchTimeMinute.input(type="number", placeholder="Text input")
                 .MatchTimerSettingsTitle 分
                 .MatchTimerSettings
-                    input.input(type="number", placeholder="Text input")
+                    input#matchTimeSecond.input(type="number", placeholder="Text input")
                 .MatchTimerSettingsTitle 秒
 
         .cell.is-row-start-2.margintop1-5
-            label.label スピチャレ時間
-            .SCTimerSettingsAre 
-                .MatchTimerSettings
-                    input.input(type="number", placeholder="Text input")
-                .MatchTimerSettingsTitle 分
-                .MatchTimerSettings
-                    input.input(type="number", placeholder="Text input")
-                .MatchTimerSettingsTitle 秒
-
-        .cell.is-row-start-3.margintop1-5
-            label.label スピチャボーナス時間
-            .SCTimerSettingsAre 
-                .MatchTimerSettings
-                    input.input(type="number", placeholder="Text input")
-                .MatchTimerSettingsTitle 分
-                .MatchTimerSettings
-                    input.input(type="number", placeholder="Text input")
-                .MatchTimerSettingsTitle 秒
-
-        .cell.is-row-start-4.margintop1-5
             label.label スピチャ自動開始
             .control
                 label.radio
@@ -103,18 +83,51 @@ h1.title.is-1.text-center.margintop1-5 試合設定
                     input(type="radio", name="answer")
                     | 無効
 
-        .cell.is-row-start-5.margintop1-5
-            label.label スピチャ開始時間
+        .cell.is-row-start-3.margintop1-5
+            label.label スピチャレ告知時間
             .SCTimerSettingsAre 
-                .MatchTimerSettingsTitle 残り
                 .MatchTimerSettings
-                    input.input(type="number", placeholder="Text input")
+                    input#scNoticeTimeMinute.input(type="number", placeholder="Text input")
                 .MatchTimerSettingsTitle 分
                 .MatchTimerSettings
-                    input.input(type="number", placeholder="Text input")
+                    input#scNoticeTimeSecond.input(type="number", placeholder="Text input")
                 .MatchTimerSettingsTitle 秒
 
-        .cell.is-col-span-2.is-row-start-6
+        .cell.is-row-start-4.margintop1-5
+            label.label スピチャミッション時間
+            .SCTimerSettingsAre 
+                .MatchTimerSettings
+                    input#scMissionTimeMinute.input(type="number", placeholder="Text input")
+                .MatchTimerSettingsTitle 分
+                .MatchTimerSettings
+                    input#scMissionTimeSecond.input(type="number", placeholder="Text input")
+                .MatchTimerSettingsTitle 秒
+
+        .cell.is-row-start-5.margintop1-5
+            label.label スピチャボーナス時間
+            .SCTimerSettingsAre 
+                .MatchTimerSettings
+                    input#scBonusTimeMinute.input(type="number", placeholder="Text input")
+                .MatchTimerSettingsTitle 分
+                .MatchTimerSettings
+                    input#scBonusTimeSecond.input(type="number", placeholder="Text input")
+                .MatchTimerSettingsTitle 秒
+
+        .cell.is-row-start-6.margintop1-5
+            label.label スピチャレ倍率
+            .SCTimerSettingsAre 
+                .MatchTimerSettings
+                    input.input(type="number", placeholder="Text input")
+                .MatchTimerSettingsTitle 倍
+
+        .cell.is-row-start-7.margintop1-5
+            label.label ラストボーナス倍率
+            .SCTimerSettingsAre 
+                .MatchTimerSettings
+                    input.input(type="number", placeholder="Text input")
+                .MatchTimerSettingsTitle 倍
+
+        .cell.is-col-span-2.is-row-start-8
             .grid
                 h3.title.is-3.cell ギフト設定
                 .buttons.cell.right-block
@@ -171,7 +184,7 @@ h1.title.is-1.text-center.margintop1-5 試合設定
                             th
                                 button.button.js-modal-trigger(data-target="edit-gift-model") 変更
 
-        .cell.is-row-start-7.margintop1-5.marginbottom10
+        .cell.is-row-start-9.margintop1-5.marginbottom10
             .buttons
                 button.button.is-link 保存
                 button.button キャンセル
@@ -200,16 +213,16 @@ h1.title.is-1.text-center.margintop1-5 試合設定
                     .cell.is-col-span-3
                         .file.has-name
                             label.file-label
-                                input#NewplayerImageInput.file-input(type="file", name="resume")
+                                input#NewgiftImageInput.file-input(type="file", name="resume")
                                 span.file-cta
                                     span.file-icon
                                     i.fas.fa-upload
                                     span.file-label Choose a file…
-                                span#NewplayerImageFileName.file-name
+                                span#NewgiftImageFileName.file-name
 
                     .cell.is-col-start-2.is-row-start-4
                         figure.image.is-128x128
-                            img#NewplayerImagePreview(src="/assets/img/NoImage.png")
+                            img#NewgiftImagePreview(src="/assets/img/NoImage.png")
                     .cell.is-col-start-3.is-row-start-4.is-flex.is-align-items-center
                         button.button ギフトエフェクト削除
 
@@ -244,16 +257,16 @@ h1.title.is-1.text-center.margintop1-5 試合設定
                     .cell.is-col-span-3
                         .file.has-name
                             label.file-label
-                                input#NewplayerImageInput.file-input(type="file", name="resume")
+                                input#NewgiftImageInput.file-input(type="file", name="resume")
                                 span.file-cta
                                     span.file-icon
                                     i.fas.fa-upload
                                     span.file-label Choose a file…
-                                span#NewplayerImageFileName.file-name
+                                span#NewgiftImageFileName.file-name
 
                     .cell.is-col-start-2.is-row-start-4
                         figure.image.is-128x128
-                            img#NewplayerImagePreview(src="/assets/img/NoImage.png")
+                            img#NewgiftImagePreview(src="/assets/img/NoImage.png")
                     .cell.is-col-start-3.is-row-start-4.is-flex.is-align-items-center
                         button.button ギフトエフェクト削除
 

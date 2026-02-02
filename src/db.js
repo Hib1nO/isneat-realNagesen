@@ -101,6 +101,12 @@ export function createDb(config) {
     return getPlayerById(playerId);
   }
 
+  async function deletePlayer(playerId) {
+    // returns true if a document was removed
+    const removedCount = await players.remove({ playerId }, { multi: false });
+    return removedCount > 0;
+  }
+
   async function listPlayers({ limit = 200, skip = 0 } = {}) {
     // createdAt asc
     return players.find({}).sort({ createdAt: 1 }).skip(skip).limit(limit).exec();
@@ -138,6 +144,7 @@ export function createDb(config) {
     // players
     createPlayer,
     updatePlayer,
+    deletePlayer,
     listPlayers,
     getPlayerById,
 

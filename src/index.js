@@ -11,9 +11,10 @@ import { startTimerLoop, handleTimerStart, handleTimerPauseToggle } from "./time
 import { createSCController } from "./sc.js";
 import { createDb } from "./db.js";
 import { createApiRouter } from "./routes/api.js";
+import { getLocalIPv4List } from "./ipget.js";
 
 
-
+const address = getLocalIPv4List()[0].address;
 // ------------------------------
 // 1) baseConfig は config.json から（最小項目のみ）
 // ------------------------------
@@ -38,8 +39,11 @@ const DEFAULT_SETTINGS = {
     Gift04: { unitScore: 300, effectVideos: [] }
   },
   sc: {
-    intervalSeconds: 120,
-    sctimerSeconds: 60,
+    noticeSeconds: 30,
+    // intervalSeconds: 120,
+    missionSeconds: 60,
+    // sctimerSeconds: 60,
+    bonusSeconds: 60,
     autoStart: true,
     autoStartTime: 240,
     scMagnification: 3
@@ -82,7 +86,7 @@ if (db.enabled) {
 // ------------------------------
 // 4) runtimeConfig = baseConfig + settings(DB)
 // ------------------------------
-const config = buildRuntimeConfig(baseConfig, settings);
+const config = buildRuntimeConfig(baseConfig, settings, address);
 console.log("config");
 console.log(config);
 
@@ -102,7 +106,11 @@ app.set("view engine", "pug");
 app.use("/assets", express.static("public"));
 
 app.get("/", (req, res) => res.redirect("/admin"));
-app.get("/admin", (req, res) => res.render("testhtml", { title: "Admin" }));
+app.get("/admin", (req, res) => res.render("testhtml", {
+  title: "Admin",
+  ip: config.address,
+  port: config.port
+}));
 app.get("/hud", (req, res) => res.render("hud", { title: "HUD" }));
 app.get("/input", (req, res) => res.render("input", { title: "Input" }));
 
@@ -183,8 +191,8 @@ ioAdmin.on("connection", (socket) => {
   socket.on("sc:start", () => {
     if(!config.sc.autoStart){
       sc.start({
-        intervalSec: Number(config.sc.intervalSeconds ?? 10),
-        mainSec: Number(config.sc.sctimerSeconds ?? 10),
+        intervalSec: Number(config.sc.missionSeconds ?? 10),
+        mainSec: Number(config.sc.bonusSeconds ?? 10),
         magnification: Number(config.sc.scMagnification ?? 2)
       });
     }

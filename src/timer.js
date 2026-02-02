@@ -15,7 +15,7 @@ export function startTimerLoop({ ioAdmin, ioHud, state, config, sc }) {
     ioAdmin.emit("timer:tick", { count: state.timerCount });
     ioHud.emit("timer:tick", { count: state.timerCount });
 
-    if(config.sc.autoStart && state.timerCount <= config.sc.autoStartTime) {
+    if(config.sc.autoStart && state.timerCount <= config.sc.autoStartTime && !state.sc.process) {
       sc.start({
         intervalSec: Number(config.sc.intervalSeconds ?? 10),
         mainSec: Number(config.sc.sctimerSeconds ?? 10),
