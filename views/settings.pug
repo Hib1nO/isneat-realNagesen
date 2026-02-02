@@ -54,7 +54,7 @@ h1.title.is-1.text-center 試合のプレイヤー設定
         .cell.is-row-start-3.margintop1-5
             .buttons
                 button#matchFormatPlayersSave.button.is-link 保存
-                button#matchFormatPlayersCancell.button キャンセル
+                button#matchFormatPlayersCancel.button キャンセル
 
 
 h1.title.is-1.text-center.margintop1-5 試合設定
@@ -133,7 +133,7 @@ h1.title.is-1.text-center.margintop1-5 試合設定
                 .buttons.cell.right-block
                     button.button.is-info.is-medium.js-modal-trigger(data-target="new-gift-model") 追加
             .gift_table_box.marginbottom10
-                table.table.is-fullwidth
+                table#giftListTable.table.is-fullwidth
                     thead.sticky
                         tr 
                             th ID
@@ -186,8 +186,8 @@ h1.title.is-1.text-center.margintop1-5 試合設定
 
         .cell.is-row-start-9.margintop1-5.marginbottom10
             .buttons
-                button.button.is-link 保存
-                button.button キャンセル
+                button#matchSettingsSave.button.is-link 保存
+                button#matchSettingsCancel.button キャンセル
 
 #new-gift-model.modal
     .modal-background
@@ -201,37 +201,37 @@ h1.title.is-1.text-center.margintop1-5 試合設定
                     .cell.tbcenter-block
                         h5.cell.title.is-5.right-text ID:
                     .cell.is-col-span-3
-                        input.input.is-medium
+                        input#NewgiftId.input.is-medium
 
                     .cell.tbcenter-block
                         h5.cell.title.is-5.right-text Score:
                     .cell.is-col-span-3
-                        input.input.is-medium
+                        input#NewgiftScore.input.is-medium
 
                     .cell.tbcenter-block
-                        h5.cell.title.is-5.right-text PlayerImage:
+                        h5.cell.title.is-5.right-text Gift Video:
                     .cell.is-col-span-3
                         .file.has-name
                             label.file-label
-                                input#NewgiftImageInput.file-input(type="file", name="resume")
+                                input#NewgiftVideoInput.file-input(type="file", name="resume")
                                 span.file-cta
                                     span.file-icon
                                     i.fas.fa-upload
                                     span.file-label Choose a file…
-                                span#NewgiftImageFileName.file-name
+                                span#NewgiftVideoFileName.file-name
 
                     .cell.is-col-start-2.is-row-start-4
                         figure.image.is-128x128
-                            img#NewgiftImagePreview(src="/assets/img/NoImage.png")
+                            img#NewgiftVideoPreview(src="/assets/img/NoImage.png")
                     .cell.is-col-start-3.is-row-start-4.is-flex.is-align-items-center
-                        button.button ギフトエフェクト削除
+                        button#NewgiftVideoDeletBtn.button ギフト動画削除
 
         footer.modal-card-foot
             .level.is-mobile(style="width: 100%")
                 .level-left
                     .buttons
-                        button.button.is-info 追加
-                        button.button.modalcancell キャンセル
+                        button#NewgiftAddBtn.button.is-info 追加
+                        button#NewgiftCancelBtn.button.modalcancell キャンセル
 
 #edit-gift-model.modal
     .modal-background
@@ -245,37 +245,37 @@ h1.title.is-1.text-center.margintop1-5 試合設定
                     .cell.tbcenter-block
                         h5.cell.title.is-5.right-text ID:
                     .cell.is-col-span-3
-                        input.input.is-medium
+                        input#giftEditId.input.is-medium
 
                     .cell.tbcenter-block
                         h5.cell.title.is-5.right-text Score:
                     .cell.is-col-span-3
-                        input.input.is-medium
+                        input#giftEditScore.input.is-medium
 
                     .cell.tbcenter-block
                         h5.cell.title.is-5.right-text PlayerImage:
                     .cell.is-col-span-3
                         .file.has-name
                             label.file-label
-                                input#NewgiftImageInput.file-input(type="file", name="resume")
+                                input#giftEditVideoInput.file-input(type="file", name="resume")
                                 span.file-cta
                                     span.file-icon
                                     i.fas.fa-upload
                                     span.file-label Choose a file…
-                                span#NewgiftImageFileName.file-name
+                                span#giftEdifVideoFileName.file-name
 
                     .cell.is-col-start-2.is-row-start-4
                         figure.image.is-128x128
-                            img#NewgiftImagePreview(src="/assets/img/NoImage.png")
+                            img#giftEditVideoPreview(src="/assets/img/NoImage.png")
                     .cell.is-col-start-3.is-row-start-4.is-flex.is-align-items-center
-                        button.button ギフトエフェクト削除
+                        button#giftEditVideoDeletBtn.button ギフト動画削除
 
         footer.modal-card-foot
             .level.is-mobile(style="width: 100%")
                 .level-left
                     .buttons
-                        button.button.is-link 保存
-                        button.button.modalcancell キャンセル
+                        button#giftEditSaveBtn.button.is-link 保存
+                        button#giftEditCancelBtn.button.modalcancell キャンセル
                 .level-right
                     .buttons
-                        button.button.is-danger 削除
+                        button#giftEditDeletBtn.button.is-danger 削除
