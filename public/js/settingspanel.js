@@ -318,18 +318,19 @@
     $(document).on("click", BTN_RELOAD, function () {
       reloadMatchFormatPlayers(true).done(function () {
         refreshPlayersPanelList(true);
-        notifySafe("更新しました", { type: "success", timeoutMs: 2000 });
       });
     });
 
     // 保存：/api/matchsettings に保存
     $(document).on("click", BTN_SAVE, function () {
       const payload = readUiMatchSettings(latestPlayers);
+      $(BTN_SAVE).addClass("is-loading");
 
       apiPutMatchSettings(payload)
         .done(function (savedSettings) {
           // サーバが full settings を返す想定（返さなくてもOK）
           latestSettings = savedSettings || latestSettings;
+          $(BTN_SAVE).removeClass("is-loading");
           notifySafe("保存しました", { type: "success", timeoutMs: 2000 });
 
           // full settings が返る場合があるので再反映して整合
@@ -337,6 +338,7 @@
         })
         .fail(function (err) {
           console.error("[settingspanel] save failed", err);
+          $(BTN_SAVE).removeClass("is-loading");
           notifySafe(String(err), { type: "danger", timeoutMs: 10000 });
         });
     });
@@ -589,6 +591,7 @@
     // 保存：ここで初めてサーバ反映（ギフトの追加/変更/削除/動画もまとめて）
     $(document).on("click", BTN_MATCH_SETTINGS_SAVE, function () {
       try {
+        $(BTN_MATCH_SETTINGS_SAVE).addClass('is-loading');
         const payload = readUIIntoDraftSettings();
 
         // gifts の「動画削除フラグ」は effectVideos=[] に反映しておく
@@ -599,14 +602,17 @@
         apiPutSettingsFormData(payload)
           .done(function (saved) {
             notifySafe("保存しました", { type: "success", timeoutMs: 2000 });
+            $(BTN_MATCH_SETTINGS_SAVE).removeClass('is-loading');
             applyServerMatchSettingsToUI(saved);
           })
           .fail(function (err) {
             console.error("[settingspanel] settings save failed", err);
+            $(BTN_MATCH_SETTINGS_SAVE).removeClass('is-loading');
             notifySafe(String(err), { type: "danger", timeoutMs: 10000 });
           });
       } catch (e) {
         console.error(e);
+        $(BTN_MATCH_SETTINGS_SAVE).removeClass('is-loading');
         notifySafe("保存に失敗しました", { type: "danger", timeoutMs: 10000 });
       }
     });

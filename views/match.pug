@@ -3,11 +3,11 @@ h1.title.is-1.text-center 試合管理
 .MatchTimerPanel
     .Timers 
         .ItemTitle.ItemText 試合時間: 
-        h2#MatchTimer.ItemText 88:88
+        h2#matchTimer.ItemText 88:88
     .buttons.are-large 
-        button.button.is-link 試合開始
-        button.button.is-warning(disabled) ポーズ
-        button.button.is-danger 試合リセット
+        button#matchStartBtn.button.is-link 試合開始
+        button#matchPauseBtn.button.is-warning(disabled) ポーズ
+        button#matchResetBtn.button.is-danger 試合リセット
 
 //- Player情報
 .Players.fixrd-grid.has-3-cols 
@@ -21,37 +21,37 @@ h1.title.is-1.text-center 試合管理
                 figure.PlalayerImage-duo.image.is-1by1.nondisplay  
                     img#player03img(src="https://bulma.io/assets/images/placeholders/256x256.png")
 
-            h1#Player01Name.margintop1-5.title.is-1.text-center.cell Player01
+            h1#player01Name.margintop1-5.title.is-1.text-center.cell Player01
 
             .Scores
                 .ScoreTitleText.ItemText.text-center Score: 
-                #Player01Score.ScoreText.ItemText.text-center 888,888
+                #player01Score.ScoreText.ItemText.text-center 888,888
 
-            input.margintop1-5.input.is-large(type="number", placeholder="スコア調整")
+            input#player01ScoreAdjustmentInput.margintop1-5.input.is-large(type="number", placeholder="スコア調整")
 
             .fixed-grid.has-3-cols
                 .grid
-                    button.margintop1-5.button.cell +10,000
-                    button.margintop1-5.button.cell +5,000
-                    button.margintop1-5.button.cell +1,000
+                    button#player01ScoreAdjustment01Btn.margintop1-5.button.cell +10,000
+                    button#player01ScoreAdjustment02Btn.margintop1-5.button.cell +5,000
+                    button#player01ScoreAdjustment03Btn.margintop1-5.button.cell +1,000
 
                 .MatchTimerPanel
                     .Timers
                         .ItemTitle.ItemText 現在の倍率: 
-                        #SCBonusTimerPlayer01.ItemText 1
+                        #player01NowMagnification.ItemText 1
 
             .fixed-grid.has-2-cols.margintop1-5
                 .grid
-                    button.button.cell.is-warning ラストボーナス開始
-                    button.button.cell.is-danger(disabled) ラストボーナス終了
+                    button#player01LastBounsStartBtn.button.cell.is-warning ラストボーナス開始
+                    button#player01LastBounsEndBtn.button.cell.is-danger(disabled) ラストボーナス終了
         
         //- 中央セル
         .MatchCenterItem.fixed-grid.has-1-cols
             .grid 
                 h1.title.is-1.text-center.cell VS 
-                button.margintop1-5.button.cell.is-success.is-large(disabled) 結果表示
-                button.margintop1-5.button.cell.is-primary.is-light.is-large スコア調整
-                button.margintop1-5.button.cell.is-warning.is-dark.is-large スコアリセット
+                button#resultsDisplayBtn.margintop1-5.button.cell.is-success.is-large(disabled) 結果表示
+                button#scoreAdjustmentBtn.margintop1-5.button.cell.is-primary.is-light.is-large スコア調整
+                button#scoreAdjustmentResetBtn.margintop1-5.button.cell.is-warning.is-dark.is-large スコアリセット
 
         //- player02
         #Player02.cell.box 
@@ -61,37 +61,48 @@ h1.title.is-1.text-center 試合管理
                 figure.PlalayerImage-duo.image.is-1by1.nondisplay  
                     img#player03img(src="https://bulma.io/assets/images/placeholders/256x256.png")
 
-            h1#Player01Name.margintop1-5.title.is-1.text-center.cell Player01
+            h1#player02Name.margintop1-5.title.is-1.text-center.cell Player02
 
             .Scores
                 .ScoreTitleText.ItemText.text-center Score: 
-                #Player02Score.ScoreText.ItemText.text-center 888,888
+                #player02Score.ScoreText.ItemText.text-center 888,888
 
-            input.margintop1-5.input.is-large(type="number", placeholder="スコア調整")
+            input#player02ScoreAdjustmentInput.margintop1-5.input.is-large(type="number", placeholder="スコア調整")
 
             .fixed-grid.has-3-cols
                 .grid
-                    button.margintop1-5.button.cell +10,000
-                    button.margintop1-5.button.cell +5,000
-                    button.margintop1-5.button.cell +1,000
+                    button#player02ScoreAdjustment01Btn.margintop1-5.button.cell +10,000
+                    button#player02ScoreAdjustment02Btn.margintop1-5.button.cell +5,000
+                    button#player02ScoreAdjustment03Btn.margintop1-5.button.cell +1,000
 
                 .MatchTimerPanel
                     .Timers
                         .ItemTitle.ItemText 現在の倍率: 
-                        #SCBonusTimerPlayer01.ItemText 1
+                        #player02NowMagnification.ItemText 1
 
             .fixed-grid.has-2-cols.margintop1-5
                 .grid
-                    button.button.cell.is-warning ラストボーナス開始
-                    button.button.cell.is-danger(disabled) ラストボーナス終了
+                    button#player02LastBounsStartBtn.button.cell.is-warning ラストボーナス開始
+                    button#player02LastBounsEndBtn.button.cell.is-danger(disabled) ラストボーナス終了
 
 .SCPanel.box 
-    .MatchTimerPanel
-        .Timers
-            .ItemTitle.ItemText スピチャレ時間: 
-            #SCTimer.ItemText 88:88
-        .buttons.are-large 
-            button.button.is-link(disabled) スピチャレ開始
+
+    .fixed-grid.has-3-cols.margintop1-5
+        .grid 
+            .cell
+                .ItemTitle.ItemText.timerText.right-text スピチャレ告知時間: 
+                
+            .cell
+                #scNoticeTimer.ItemText.timerText 88:88
+
+            .cell.buttons.are-large 
+                button#scStartBtn.button.is-link(disabled) スピチャレ開始
+
+            .cell
+                .ItemTitle.ItemText.timerText.right-text スピチャミッション時間: 
+                
+            .cell
+                #scMissionTimer.ItemText.timerText 88:88
 
     .fixed-grid.has-3-cols.margintop1-5
         .marginlr4.grid 
@@ -108,13 +119,13 @@ h1.title.is-1.text-center 試合管理
 
     .fixed-grid.has-3-cols.margintop1-5
         .marginlr4.grid
-            button.cell.button.is-primary.is-large(disabled) スピチャレ成功
-            button.cell.button.is-primary.is-large.is-col-start-3(disabled) スピチャレ成功
+            button#scPlayer01SuccessBtn.cell.button.is-primary.is-large(disabled) スピチャレ成功
+            button#scPlayer02SuccessBtn.cell.button.is-primary.is-large.is-col-start-3(disabled) スピチャレ成功
 
     .box 
         h1.marginlr4.title.is-1 試合履歴
         .table_box.marginlr4.marginbottom10
-            table.table.is-fullwidth
+            table#matchHistory.table.is-fullwidth
                 thead.sticky
                     tr 
                         th 日時

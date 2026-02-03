@@ -19,7 +19,11 @@
 .Timers {
     display: flex;
     justify-content: space-around;
-    font-size: 3rem;
+    font-size: 2.5rem;
+}
+
+.timerText{
+    font-size: 2.5rem;
 }
 
 .ItemTitle {
@@ -127,6 +131,14 @@
 
 .right-block {
     margin: 0 0 0 auto;
+}
+
+.left-text {
+    text-align: left;
+}
+
+.left-block {
+    margin: 0 auto 0 0;
 }
 
 .center-block {

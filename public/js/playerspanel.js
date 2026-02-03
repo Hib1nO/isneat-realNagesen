@@ -287,6 +287,7 @@ $(function () {
   function saveCurrentPlayer() {
     const playerId = getSelectedPlayerId();
     if (!playerId) return;
+    $($saveBtn).addClass('is-loading');
 
     const fd = new FormData();
     fd.append("name", $playerNameInput.val() || "");
@@ -303,6 +304,7 @@ $(function () {
 
     apiUpdatePlayerMultipart(playerId, fd)
       .done((updated) => {
+        $($saveBtn).removeClass('is-loading');
         notifySafe("保存しました", { type: "success", timeoutMs: 3000 });
 
         // 保存したら予約解除
@@ -314,6 +316,7 @@ $(function () {
       })
       .fail((err) => {
         console.error(err);
+        $($saveBtn).removeClass('is-loading');
         notifySafe(String(err), { type: "danger", timeoutMs: 10000 });
       });
   }
@@ -370,11 +373,14 @@ $(function () {
     const file = $newPlayerInput[0]?.files?.[0] || null;
 
     const fd = new FormData();
+    $($newSaveBtn).addClass('is-loading');
+
     fd.append("name", name);
     if (file) fd.append("image", file);
 
     apiCreatePlayerMultipart(fd)
       .done((created) => {
+        $($newSaveBtn).removeClass('is-loading');
         notifySafe("新規プレイヤーを作成しました", { type: "success", timeoutMs: 3000 });
 
         closeNewModal();
@@ -385,6 +391,7 @@ $(function () {
       })
       .fail((err) => {
         console.error(err);
+        $($newSaveBtn).removeClass('is-loading');
         notifySafe(String(err), { type: "danger", timeoutMs: 10000 });
       });
   }
