@@ -67,15 +67,15 @@ h1.title.is-1.text-center.margintop1-5 試合設定
             label.label 試合時間
             .MatchTimerSettingsAre
                 .MatchTimerSettings
-                    input#matchTimeMinute.input(type="number", placeholder="Text input")
+                    input#matchTimeMinuteInput.input(type="number", placeholder="Text input")
                 .MatchTimerSettingsTitle 分
                 .MatchTimerSettings
-                    input#matchTimeSecond.input(type="number", placeholder="Text input")
+                    input#matchTimeSecondInput.input(type="number", placeholder="Text input")
                 .MatchTimerSettingsTitle 秒
 
         .cell.is-row-start-2.margintop1-5
             label.label スピチャ自動開始
-            .control
+            .control#scAutoStartSettings
                 label.radio
                     input(type="radio", name="answer")
                     | 有効
@@ -87,44 +87,44 @@ h1.title.is-1.text-center.margintop1-5 試合設定
             label.label スピチャレ告知時間
             .SCTimerSettingsAre 
                 .MatchTimerSettings
-                    input#scNoticeTimeMinute.input(type="number", placeholder="Text input")
+                    input#scNoticeTimeMinuteInput.input(type="number", placeholder="Text input")
                 .MatchTimerSettingsTitle 分
                 .MatchTimerSettings
-                    input#scNoticeTimeSecond.input(type="number", placeholder="Text input")
+                    input#scNoticeTimeSecondInput.input(type="number", placeholder="Text input")
                 .MatchTimerSettingsTitle 秒
 
         .cell.is-row-start-4.margintop1-5
             label.label スピチャミッション時間
             .SCTimerSettingsAre 
                 .MatchTimerSettings
-                    input#scMissionTimeMinute.input(type="number", placeholder="Text input")
+                    input#scMissionTimeMinuteInput.input(type="number", placeholder="Text input")
                 .MatchTimerSettingsTitle 分
                 .MatchTimerSettings
-                    input#scMissionTimeSecond.input(type="number", placeholder="Text input")
+                    input#scMissionTimeSecondInput.input(type="number", placeholder="Text input")
                 .MatchTimerSettingsTitle 秒
 
         .cell.is-row-start-5.margintop1-5
             label.label スピチャボーナス時間
             .SCTimerSettingsAre 
                 .MatchTimerSettings
-                    input#scBonusTimeMinute.input(type="number", placeholder="Text input")
+                    input#scBonusTimeMinuteInput.input(type="number", placeholder="Text input")
                 .MatchTimerSettingsTitle 分
                 .MatchTimerSettings
-                    input#scBonusTimeSecond.input(type="number", placeholder="Text input")
+                    input#scBonusTimeSecondInput.input(type="number", placeholder="Text input")
                 .MatchTimerSettingsTitle 秒
 
         .cell.is-row-start-6.margintop1-5
             label.label スピチャレ倍率
             .SCTimerSettingsAre 
                 .MatchTimerSettings
-                    input.input(type="number", placeholder="Text input")
+                    input#scMagnificationInput.input(type="number", placeholder="Text input")
                 .MatchTimerSettingsTitle 倍
 
         .cell.is-row-start-7.margintop1-5
             label.label ラストボーナス倍率
             .SCTimerSettingsAre 
                 .MatchTimerSettings
-                    input.input(type="number", placeholder="Text input")
+                    input#lastBounsMagnificationInput.input(type="number", placeholder="Text input")
                 .MatchTimerSettingsTitle 倍
 
         .cell.is-col-span-2.is-row-start-8
