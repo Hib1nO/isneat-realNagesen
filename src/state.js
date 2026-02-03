@@ -34,6 +34,11 @@ export function createInitialState(config) {
       autoStart: config.sc.autoStart,
       autoStartTime: config.sc.autoStartTime,
       success: { player01: false, player02: false }
+    },
+
+    lastBounsProcess: {
+      player01: false,
+      player02: false,
     }
   };
 }
@@ -62,6 +67,8 @@ export function resetMatch(state, config) {
   state.sc.noticeSec = config.sc.noticeSeconds
   state.sc.success.player01 = false;
   state.sc.success.player02 = false;
+  state.lastBounsProcess.player01 = false;
+  state.lastBounsProcess.player02 = false;
 }
 
 export function applySnapshotDiff(state, config, snapshot) {
@@ -132,6 +139,7 @@ export function getPublicState(state) {
       player01QueueLen: state.videoQueue.player01.length,
       player02QueueLen: state.videoQueue.player02.length
     },
-    sc: { ...state.sc }
+    sc: { ...state.sc },
+    lastbounsprocess: { ...state.lastBounsProcess }
   };
 }

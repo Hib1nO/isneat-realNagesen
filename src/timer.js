@@ -17,9 +17,10 @@ export function startTimerLoop({ ioAdmin, ioHud, state, config, sc }) {
 
     if(config.sc.autoStart && state.timerCount <= config.sc.autoStartTime && !state.sc.process) {
       sc.start({
-        intervalSec: Number(config.sc.intervalSeconds ?? 10),
-        mainSec: Number(config.sc.sctimerSeconds ?? 10),
-        magnification: Number(config.sc.scMagnification ?? 2)
+        noticeSec: Number(config.sc.noticeSeconds ?? 30),
+        missionSec: Number(config.sc.missionSeconds ?? 60),
+        bonusSec: Number(config.sc.bonusSeconds ?? 60),
+        magnification: Number(config.sc.scMagnification ?? 3)
       });
     }
 

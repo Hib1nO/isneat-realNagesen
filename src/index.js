@@ -154,17 +154,25 @@ ioAdmin.on("connection", (socket) => {
   socket.on("match:reset", async () => {
     // ★ matchesに1試合ごとにID採番して保存
     if (db.enabled && db.createMatch) {
-      const saved = await db.enqueue(() =>
-        db.createMatch({
-          total: { ...state.total },
-          timerCount: state.timerCount,
-          endedAt: Date.now()
-        })
-      );
-      ioAdmin.emit("notify", {
-        type: "info",
-        message: saved?.matchId ? `Saved match result. matchId=${saved.matchId}` : "Saved match result."
+      const saved = await db.enqueue(() =>{
+        if (state.timerCount > 0) {
+          db.createMatch({
+            total: { ...state.total },
+            matchformat: state.matchformat,
+            matchplayers: { ...state.matchplayers},
+            matchstate: "キャンセル",
+            timerCount: state.timerCount,
+            endedAt: Date.now()
+          })
+        }
       });
+
+      if (saved.matchId) {
+        ioAdmin.emit("notify", {
+          type: "info",
+          message: saved?.matchId ? `Saved match result. matchId=${saved.matchId}` : "Saved match result."
+        });
+      }
     }
 
     resetMatch(state, config);
