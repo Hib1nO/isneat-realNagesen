@@ -1,4 +1,15 @@
+{"playerId":"b6082de5-40a9-4554-8f73-841c73681265","key":null,"name":"TestPlayer001","imageUrl":"","createdAt":1770083555988,"updatedAt":1770083555988,"_id":"0ZdSlcQsDo03vbU6"}
+{"playerId":"f3c81c6e-e59b-402b-8eb2-1965c2f7cd4d","key":null,"name":"TestPlayer004","imageUrl":"","createdAt":1770083573321,"updatedAt":1770083573321,"_id":"QBtu5NbCFY11L8ZE"}
+{"playerId":"4fb4e77f-c0d4-480c-93fd-8ea8089d0180","key":null,"name":"TestPlayer003","imageUrl":"","createdAt":1770083568075,"updatedAt":1770083568075,"_id":"T0TznRVCTLK6YpPN"}
 {"playerId":"7ec61b9f-6ac1-4496-b4df-e32f8a86fddd","key":null,"name":"てｓｔ","imageUrl":"","createdAt":1770022837526,"updatedAt":1770022837526,"_id":"cQ24dfrWMxSC2Rao"}
+{"playerId":"88541a8e-5140-4ecd-8385-1ecd2ded563f","key":null,"name":"TestPlayer002","imageUrl":"","createdAt":1770083562350,"updatedAt":1770083562350,"_id":"fbRmL8jE7kziubQY"}
 {"playerId":"d7a6df37-a664-46ec-80e1-35c4f3422aa6","key":null,"name":"テストプレイヤー002","imageUrl":"/assets/strage/d7a6df37-a664-46ec-80e1-35c4f3422aa6.png","createdAt":1770020388481,"updatedAt":1770022100683,"_id":"hMft6w5CVZqMQiVM"}
 {"playerId":"334a25df-652f-40ca-9f13-fe13abab0c26","key":null,"name":"テストプレイヤー00","imageUrl":"/assets/strage/334a25df-652f-40ca-9f13-fe13abab0c26.png","createdAt":1770020179839,"updatedAt":1770022832539,"_id":"r61sZStvXr9OfCLu"}
 {"$$indexCreated":{"fieldName":"playerId","unique":true,"sparse":false}}
+{"playerId":"a5699304-546a-4b90-8b12-25a260c9abdd","key":null,"name":"TTTT","imageUrl":"","createdAt":1770084140635,"updatedAt":1770084140635,"_id":"Bsvkl5nYmDoIb9FK"}
+{"$$deleted":true,"_id":"r61sZStvXr9OfCLu"}
+{"$$deleted":true,"_id":"cQ24dfrWMxSC2Rao"}
+{"$$deleted":true,"_id":"0ZdSlcQsDo03vbU6"}
+{"$$deleted":true,"_id":"fbRmL8jE7kziubQY"}
+{"playerId":"dae962e0-a14d-4a72-b36e-197368147fa1","key":null,"name":"テストプレイヤー001","imageUrl":"","createdAt":1770084196055,"updatedAt":1770084196055,"_id":"S09h0Bg6T2ZquuGT"}
+{"playerId":"361d0cc1-b23d-4fac-b7e0-d74ff0e9d445","key":null,"name":"Tesss","imageUrl":"","createdAt":1770084259927,"updatedAt":1770084259927,"_id":"fg1tcos91sKSdVBa"}

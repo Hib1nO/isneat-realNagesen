@@ -253,17 +253,30 @@ export function createApiRouter({ state, config, db }) {
   });
 
   router.put("/matchsettings", express.json(), async (req, res) => {
-    
+    const body = (req.body && req.body.settings) ? req.body.settings : (req.body || {});
+    const patch = {
+      matchformat: body.matchformat,
+      matchplayers: body.matchplayers
+    };
+
+    // 先にランタイムへ反映（DB無効でも反映）
     try {
-      applySettingsToRuntime({ config, state, settings: saved });
+      applyMatchSettingsToRuntime({ config, state, settings: patch });
     } catch (error) {
-      console.log(error)
-      return res.status(503).json({ ok: false, message: "保存に失敗しました"})
+      console.log(error);
+      return res.status(503).json({ ok: false, message: "保存に失敗しました" });
     }
 
+    // DB無効ならここで終了（ランタイム反映済み）
     if (!dbGuard(db, res)) return res.status(201).json({ ok: true, message: "データ保存を利用していません。" });
-    const saved = await db.enqueue(() => db.setSettings(req.body || {}));
 
+    // 既存 settings に match 系のみマージして保存
+    const current = await db.getSettings();
+    const merged = { ...(current || {}) };
+    if (patch.matchformat !== undefined) merged.matchformat = patch.matchformat;
+    if (patch.matchplayers !== undefined) merged.matchplayers = patch.matchplayers;
+
+    const saved = await db.enqueue(() => db.setSettings(merged));
     res.json({ ok: true, settings: saved });
   });
 

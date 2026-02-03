@@ -173,6 +173,16 @@ $(function () {
         const optionsHtml = window.PlayersStore.buildOptionsHtml(players);
         $playerListSelect.html(optionsHtml);
 
+        try {
+          if (typeof window.settingsPanelUpdatePlayersOptions === "function") {
+            window.settingsPanelUpdatePlayersOptions(players);
+          } else if (typeof window.renderSettingsPlayerSelects === "function") {
+            window.renderSettingsPlayerSelects();
+          }
+        } catch (e) {
+          console.warn("[players-settings] settings player list sync failed", e);
+        }
+
         // 優先順位：明示 > 以前 > 先頭
         let nextId = selectPlayerId || before || (players[0] && players[0].playerId);
 
@@ -193,6 +203,9 @@ $(function () {
         notifySafe(String(err), { type: "danger", timeoutMs: 10000 });
       });
   }
+
+  window.playersPanelReloadList = playersreload;
+  window.playersPanelReload = playersreload;
 
   // =========================
   // 画像プレビュー（ファイル名反映込み）
