@@ -350,5 +350,448 @@
         reloadMatchFormatPlayers(true);
       }
     });
+
+    // =========================================================
+    // Match Settings (timer/sc/gifts) - draft only until SAVE
+    // =========================================================
+    const BTN_MATCH_SETTINGS_RELOAD = "#matchSettingsReload";
+    const BTN_MATCH_SETTINGS_SAVE = "#matchSettingsSave";
+    const BTN_MATCH_SETTINGS_CANCEL = "#matchSettingsCancel";
+
+    const IN_MATCH_MIN = "#matchTimeMinuteInput";
+    const IN_MATCH_SEC = "#matchTimeSecondInput";
+
+    const IN_SC_NOTICE_MIN = "#scNoticeTimeMinuteInput";
+    const IN_SC_NOTICE_SEC = "#scNoticeTimeSecondInput";
+    const IN_SC_MISSION_MIN = "#scMissionTimeMinuteInput";
+    const IN_SC_MISSION_SEC = "#scMissionTimeSecondInput";
+    const IN_SC_BONUS_MIN = "#scBonusTimeMinuteInput";
+    const IN_SC_BONUS_SEC = "#scBonusTimeSecondInput";
+
+    const RADIO_SC_ON = "#scAutoStartOn";
+    const RADIO_SC_OFF = "#scAutoStartOff";
+
+    // 互換：古いIDが存在する場合も拾う
+    const IN_SC_MAG = "#scMagnificationInput, #MagnificationInput";
+    const IN_LAST_BONUS_MAG = "#lastBounsMagnificationInput, #lastBounsMagnificationInput";
+
+    const TABLE_GIFT = "#giftListTable";
+    const TBODY_GIFT = "#giftListBody";
+
+    // Gift modals
+    const MODAL_NEW_GIFT = "#new-gift-model";
+    const MODAL_EDIT_GIFT = "#edit-gift-model";
+
+    const IN_NEW_GIFT_ID = "#NewgiftId";
+    const IN_NEW_GIFT_SCORE = "#NewgiftScore";
+    const IN_NEW_GIFT_VIDEO = "#NewgiftVideoInput";
+    const PRE_NEW_GIFT_VIDEO = "#NewgiftVideoPreview";
+    const SPAN_NEW_GIFT_VIDEO_NAME = "#NewgiftVideoFileName";
+    const BTN_NEW_GIFT_VIDEO_DEL = "#NewgiftVideoDeletBtn";
+    const BTN_NEW_GIFT_ADD = "#NewgiftAddBtn";
+
+    const IN_EDIT_GIFT_ID = "#giftEditId";
+    const IN_EDIT_GIFT_SCORE = "#giftEditScore";
+    const IN_EDIT_GIFT_VIDEO = "#giftEditVideoInput";
+    const PRE_EDIT_GIFT_VIDEO = "#giftEditVideoPreview";
+    const SPAN_EDIT_GIFT_VIDEO_NAME = "#giftEdifVideoFileName";
+    const BTN_EDIT_GIFT_VIDEO_DEL = "#giftEditVideoDeletBtn";
+    const BTN_EDIT_GIFT_SAVE = "#giftEditSaveBtn";
+    const BTN_EDIT_GIFT_DELETE = "#giftEditDeletBtn";
+
+    // draft state
+    let serverSettings = null; // GET /api/settings の最新
+    let draftSettings = null;  // UIで編集するドラフト（保存までサーバ反映しない）
+    const pendingGiftVideos = new Map();   // giftId -> File
+    const pendingGiftVideoDeletes = new Set(); // giftId
+
+    function clampInt(n, min, max) {
+      const x = Number(n);
+      if (!Number.isFinite(x)) return min;
+      return Math.min(max, Math.max(min, Math.trunc(x)));
+    }
+
+    function secondsToMS(sec) {
+      const s = clampInt(sec, 0, 24 * 3600);
+      return { m: Math.floor(s / 60), s: s % 60 };
+    }
+
+    function msToSeconds(min, sec) {
+      return clampInt(min, 0, 9999) * 60 + clampInt(sec, 0, 59);
+    }
+
+    function getCheckedScAutoStart() {
+      if ($(RADIO_SC_ON).is(":checked")) return true;
+      if ($(RADIO_SC_OFF).is(":checked")) return false;
+      // fallback: checked radio by name
+      const v = $('input[name="scAutoStart"]:checked').val();
+      return String(v) !== "0";
+    }
+
+    function setScAutoStartUI(flag) {
+      const on = !!flag;
+      if ($(RADIO_SC_ON).length) $(RADIO_SC_ON).prop("checked", on);
+      if ($(RADIO_SC_OFF).length) $(RADIO_SC_OFF).prop("checked", !on);
+    }
+
+    function buildGiftRow(giftId, gift) {
+      const score = Number(gift?.unitScore ?? 0);
+      const videos = Array.isArray(gift?.effectVideos) ? gift.effectVideos : [];
+      const hasVideo = videos.length > 0;
+      const videoLabel = hasVideo ? "あり" : "なし";
+      return `
+        <tr data-gift-id="${String(giftId).replaceAll('"', "&quot;")}">
+          <td>${giftId}</td>
+          <td>${score}</td>
+          <td>${videoLabel}</td>
+          <td><button class="button is-small js-gift-edit" data-gift-id="${giftId}">変更</button></td>
+        </tr>
+      `;
+    }
+
+    function renderGiftTable() {
+      if (!draftSettings) return;
+      const gifts = draftSettings.gifts || {};
+      const ids = Object.keys(gifts).sort();
+      const html = ids.map((id) => buildGiftRow(id, gifts[id])).join("");
+      if ($(TBODY_GIFT).length) {
+        $(TBODY_GIFT).html(html);
+      } else {
+        // 保険：tbodyが無い場合は tfoot に入れる
+        $(TABLE_GIFT).find("tfoot").html(html);
+      }
+    }
+
+    function applyServerMatchSettingsToUI(s) {
+      serverSettings = deepClone(s || {});
+      draftSettings = deepClone(serverSettings || {});
+      pendingGiftVideos.clear();
+      pendingGiftVideoDeletes.clear();
+
+      // timer
+      const defSec = Number(draftSettings?.timer?.defaultSeconds ?? 0);
+      const t = secondsToMS(defSec);
+      $(IN_MATCH_MIN).val(t.m);
+      $(IN_MATCH_SEC).val(t.s);
+
+      // sc
+      const sc = draftSettings.sc || {};
+      const n = secondsToMS(Number(sc.noticeSeconds ?? 0));
+      $(IN_SC_NOTICE_MIN).val(n.m);
+      $(IN_SC_NOTICE_SEC).val(n.s);
+
+      const mi = secondsToMS(Number(sc.missionSeconds ?? 0));
+      $(IN_SC_MISSION_MIN).val(mi.m);
+      $(IN_SC_MISSION_SEC).val(mi.s);
+
+      const bo = secondsToMS(Number(sc.bonusSeconds ?? 0));
+      $(IN_SC_BONUS_MIN).val(bo.m);
+      $(IN_SC_BONUS_SEC).val(bo.s);
+
+      setScAutoStartUI(!!sc.autoStart);
+
+      $(IN_SC_MAG).first().val(Number(sc.scMagnification ?? 1));
+      $(IN_LAST_BONUS_MAG).first().val(Number(draftSettings.lastBonusMagnification ?? 1));
+
+      renderGiftTable();
+    }
+
+    function readUIIntoDraftSettings() {
+      if (!draftSettings) draftSettings = {};
+
+      // timer
+      draftSettings.timer = draftSettings.timer || {};
+      draftSettings.timer.defaultSeconds = msToSeconds($(IN_MATCH_MIN).val(), $(IN_MATCH_SEC).val());
+
+      // sc
+      draftSettings.sc = draftSettings.sc || {};
+      draftSettings.sc.noticeSeconds = msToSeconds($(IN_SC_NOTICE_MIN).val(), $(IN_SC_NOTICE_SEC).val());
+      draftSettings.sc.missionSeconds = msToSeconds($(IN_SC_MISSION_MIN).val(), $(IN_SC_MISSION_SEC).val());
+      draftSettings.sc.bonusSeconds = msToSeconds($(IN_SC_BONUS_MIN).val(), $(IN_SC_BONUS_SEC).val());
+      draftSettings.sc.autoStart = getCheckedScAutoStart();
+
+      const scMag = Number($(IN_SC_MAG).first().val());
+      if (Number.isFinite(scMag)) draftSettings.sc.scMagnification = scMag;
+
+      const lastMag = Number($(IN_LAST_BONUS_MAG).first().val());
+      if (Number.isFinite(lastMag)) draftSettings.lastBonusMagnification = lastMag;
+
+      // gifts は draftSettings で管理済み
+      return draftSettings;
+    }
+
+    function apiPutSettingsFormData(settingsObj) {
+      const fd = new FormData();
+      fd.append("settings", JSON.stringify(settingsObj || {}));
+      for (const [giftId, file] of pendingGiftVideos.entries()) {
+        fd.append(`giftVideo_${giftId}`, file, file.name || `${giftId}.mp4`);
+      }
+      return $.ajax({
+        url: "/api/settings",
+        method: "PUT",
+        data: fd,
+        processData: false,
+        contentType: false,
+        dataType: "json"
+      }).then(function (data) {
+        if (!data || !data.ok) {
+          return $.Deferred().reject(data?.message || "settings save failed").promise();
+        }
+        return data.settings || settingsObj;
+      });
+    }
+
+    function isVideoFile(file) {
+      return !!file && !!file.type && /^video\//.test(file.type);
+    }
+
+    function setVideoPreview($video, fileOrUrl) {
+      if (!$video || !$video.length) return;
+      try {
+        if (!fileOrUrl) {
+          $video.attr("src", "");
+          $video.get(0)?.load?.();
+          return;
+        }
+        if (typeof fileOrUrl === "string") {
+          $video.attr("src", fileOrUrl);
+          $video.get(0)?.load?.();
+          return;
+        }
+        const url = URL.createObjectURL(fileOrUrl);
+        $video.attr("src", url);
+        $video.get(0)?.load?.();
+      } catch (e) {
+        console.warn("[settingspanel] setVideoPreview failed", e);
+      }
+    }
+
+    // 初回：サーバ設定を読み込んでUI同期
+    function reloadMatchSettingsFromServer() {
+      return apiGetSettings()
+        .done(function (s) {
+          applyServerMatchSettingsToUI(s);
+        })
+        .fail(function (err) {
+          console.error("[settingspanel] settings load failed", err);
+          notifySafe(String(err), { type: "danger", timeoutMs: 10000 });
+        });
+    }
+
+    // 追加：Settings の「更新」
+    $(document).on("click", BTN_MATCH_SETTINGS_RELOAD, function () {
+      reloadMatchSettingsFromServer();
+    });
+
+    // 初回ロード（DOM ready 時点で呼ぶ）
+    reloadMatchSettingsFromServer();
+
+    // 保存：ここで初めてサーバ反映（ギフトの追加/変更/削除/動画もまとめて）
+    $(document).on("click", BTN_MATCH_SETTINGS_SAVE, function () {
+      try {
+        const payload = readUIIntoDraftSettings();
+
+        // gifts の「動画削除フラグ」は effectVideos=[] に反映しておく
+        for (const gid of pendingGiftVideoDeletes.values()) {
+          if (payload?.gifts?.[gid]) payload.gifts[gid].effectVideos = [];
+        }
+
+        apiPutSettingsFormData(payload)
+          .done(function (saved) {
+            notifySafe("保存しました", { type: "success", timeoutMs: 2000 });
+            applyServerMatchSettingsToUI(saved);
+          })
+          .fail(function (err) {
+            console.error("[settingspanel] settings save failed", err);
+            notifySafe(String(err), { type: "danger", timeoutMs: 10000 });
+          });
+      } catch (e) {
+        console.error(e);
+        notifySafe("保存に失敗しました", { type: "danger", timeoutMs: 10000 });
+      }
+    });
+
+    // キャンセル：サーバ設定に戻す（ドラフト破棄）
+    $(document).on("click", BTN_MATCH_SETTINGS_CANCEL, function () {
+      if (!serverSettings) return reloadMatchSettingsFromServer();
+      applyServerMatchSettingsToUI(serverSettings);
+      notifySafe("サーバ設定に戻しました", { type: "info", timeoutMs: 1500 });
+    });
+
+    // ========= Gift: New modal =========
+    $(document).on("change", IN_NEW_GIFT_VIDEO, function () {
+      const file = this.files && this.files[0];
+      if (!file) return;
+
+      if (!isVideoFile(file)) {
+        notifySafe("動画ファイルを選択してください", { type: "warning", timeoutMs: 8000 });
+        $(this).val("");
+        return;
+      }
+      if ($(SPAN_NEW_GIFT_VIDEO_NAME).length) $(SPAN_NEW_GIFT_VIDEO_NAME).text(file.name);
+      setVideoPreview($(PRE_NEW_GIFT_VIDEO), file);
+    });
+
+    $(document).on("click", BTN_NEW_GIFT_VIDEO_DEL, function () {
+      $(IN_NEW_GIFT_VIDEO).val("");
+      if ($(SPAN_NEW_GIFT_VIDEO_NAME).length) $(SPAN_NEW_GIFT_VIDEO_NAME).text("");
+      setVideoPreview($(PRE_NEW_GIFT_VIDEO), null);
+    });
+
+    $(document).on("click", BTN_NEW_GIFT_ADD, function () {
+      if (!draftSettings) draftSettings = deepClone(serverSettings || {});
+      draftSettings.gifts = draftSettings.gifts || {};
+
+      const giftId = String($(IN_NEW_GIFT_ID).val() || "").trim();
+      const score = Number($(IN_NEW_GIFT_SCORE).val());
+
+      if (!giftId) {
+        notifySafe("ギフトIDを入力してください", { type: "warning", timeoutMs: 8000 });
+        return;
+      }
+      if (draftSettings.gifts[giftId]) {
+        notifySafe("同じギフトIDが既に存在します", { type: "warning", timeoutMs: 8000 });
+        return;
+      }
+      if (!Number.isFinite(score) || score < 0) {
+        notifySafe("加算スコアを正しく入力してください", { type: "warning", timeoutMs: 8000 });
+        return;
+      }
+
+      const file = $(IN_NEW_GIFT_VIDEO).get(0)?.files?.[0] || null;
+
+      draftSettings.gifts[giftId] = {
+        unitScore: score,
+        effectVideos: [] // 保存時に file があれば埋める
+      };
+
+      if (file) {
+        if (!isVideoFile(file)) {
+          notifySafe("動画ファイルを選択してください", { type: "warning", timeoutMs: 8000 });
+          return;
+        }
+        pendingGiftVideos.set(giftId, file);
+        pendingGiftVideoDeletes.delete(giftId);
+        // UI上は「あり」表示にしたいのでダミーURLをセット
+        draftSettings.gifts[giftId].effectVideos = ["(pending)"];
+      }
+
+      renderGiftTable();
+      notifySafe("ギフトを追加しました（保存で反映）", { type: "info", timeoutMs: 2000 });
+
+      // 入力リセット
+      $(IN_NEW_GIFT_ID).val("");
+      $(IN_NEW_GIFT_SCORE).val("");
+      $(IN_NEW_GIFT_VIDEO).val("");
+      if ($(SPAN_NEW_GIFT_VIDEO_NAME).length) $(SPAN_NEW_GIFT_VIDEO_NAME).text("");
+      setVideoPreview($(PRE_NEW_GIFT_VIDEO), null);
+
+      // モーダルを閉じる（bulma）
+      $(MODAL_NEW_GIFT).removeClass("is-active");
+    });
+
+    // ========= Gift: Edit modal =========
+    function openEditGiftModal(giftId) {
+      if (!draftSettings?.gifts?.[giftId]) return;
+      const g = draftSettings.gifts[giftId];
+
+      $(IN_EDIT_GIFT_ID).val(giftId);
+      $(IN_EDIT_GIFT_SCORE).val(Number(g.unitScore ?? 0));
+
+      // 動画：draft の URL（サーバ保存済み） or pending file
+      const pending = pendingGiftVideos.get(giftId);
+      const url = Array.isArray(g.effectVideos) && g.effectVideos.length > 0 ? g.effectVideos[0] : "";
+      if (pending) {
+        if ($(SPAN_EDIT_GIFT_VIDEO_NAME).length) $(SPAN_EDIT_GIFT_VIDEO_NAME).text(pending.name);
+        setVideoPreview($(PRE_EDIT_GIFT_VIDEO), pending);
+      } else {
+        if ($(SPAN_EDIT_GIFT_VIDEO_NAME).length) $(SPAN_EDIT_GIFT_VIDEO_NAME).text(url ? String(url).split("/").pop() : "");
+        setVideoPreview($(PRE_EDIT_GIFT_VIDEO), url || null);
+      }
+      $(IN_EDIT_GIFT_VIDEO).val("");
+
+      $(MODAL_EDIT_GIFT).addClass("is-active");
+    }
+
+    $(document).on("click", ".js-gift-edit", function () {
+      const gid = String($(this).data("gift-id") || "").trim();
+      if (!gid) return;
+      openEditGiftModal(gid);
+    });
+
+    $(document).on("change", IN_EDIT_GIFT_VIDEO, function () {
+      const file = this.files && this.files[0];
+      if (!file) return;
+
+      if (!isVideoFile(file)) {
+        notifySafe("動画ファイルを選択してください", { type: "warning", timeoutMs: 8000 });
+        $(this).val("");
+        return;
+      }
+      if ($(SPAN_EDIT_GIFT_VIDEO_NAME).length) $(SPAN_EDIT_GIFT_VIDEO_NAME).text(file.name);
+      setVideoPreview($(PRE_EDIT_GIFT_VIDEO), file);
+    });
+
+    $(document).on("click", BTN_EDIT_GIFT_VIDEO_DEL, function () {
+      const gid = String($(IN_EDIT_GIFT_ID).val() || "").trim();
+      if (!gid) return;
+
+      // ドラフト上で削除（保存で反映）
+      pendingGiftVideos.delete(gid);
+      pendingGiftVideoDeletes.add(gid);
+
+      if (draftSettings?.gifts?.[gid]) {
+        draftSettings.gifts[gid].effectVideos = [];
+      }
+
+      $(IN_EDIT_GIFT_VIDEO).val("");
+      if ($(SPAN_EDIT_GIFT_VIDEO_NAME).length) $(SPAN_EDIT_GIFT_VIDEO_NAME).text("");
+      setVideoPreview($(PRE_EDIT_GIFT_VIDEO), null);
+
+      notifySafe("ギフト動画を削除しました（保存で反映）", { type: "info", timeoutMs: 2000 });
+      renderGiftTable();
+    });
+
+    $(document).on("click", BTN_EDIT_GIFT_SAVE, function () {
+      const gid = String($(IN_EDIT_GIFT_ID).val() || "").trim();
+      if (!gid || !draftSettings?.gifts?.[gid]) return;
+
+      const score = Number($(IN_EDIT_GIFT_SCORE).val());
+      if (!Number.isFinite(score) || score < 0) {
+        notifySafe("加算スコアを正しく入力してください", { type: "warning", timeoutMs: 8000 });
+        return;
+      }
+
+      draftSettings.gifts[gid].unitScore = score;
+
+      const file = $(IN_EDIT_GIFT_VIDEO).get(0)?.files?.[0] || null;
+      if (file) {
+        if (!isVideoFile(file)) {
+          notifySafe("動画ファイルを選択してください", { type: "warning", timeoutMs: 8000 });
+          return;
+        }
+        pendingGiftVideos.set(gid, file);
+        pendingGiftVideoDeletes.delete(gid);
+        // UI上は「あり」表示にしたいのでダミー
+        draftSettings.gifts[gid].effectVideos = ["(pending)"];
+      }
+
+      renderGiftTable();
+      notifySafe("ギフトを更新しました（保存で反映）", { type: "info", timeoutMs: 2000 });
+      $(MODAL_EDIT_GIFT).removeClass("is-active");
+    });
+
+    $(document).on("click", BTN_EDIT_GIFT_DELETE, function () {
+      const gid = String($(IN_EDIT_GIFT_ID).val() || "").trim();
+      if (!gid || !draftSettings?.gifts?.[gid]) return;
+
+      delete draftSettings.gifts[gid];
+      pendingGiftVideos.delete(gid);
+      pendingGiftVideoDeletes.delete(gid);
+
+      renderGiftTable();
+      notifySafe("ギフトを削除しました（保存で反映）", { type: "info", timeoutMs: 2000 });
+      $(MODAL_EDIT_GIFT).removeClass("is-active");
+    });
   });
 })();

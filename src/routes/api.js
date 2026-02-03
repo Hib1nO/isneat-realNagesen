@@ -25,7 +25,22 @@ const upload = multer({
   }
 });
 
+const uploadVideo = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 100 * 1024 * 1024 // 100MB
+  },
+  fileFilter: (req, file, cb) => {
+    // 動画のみ許可
+    if (!file.mimetype?.startsWith("video/")) {
+      return cb(new Error("Only video files are allowed"));
+    }
+    cb(null, true);
+  }
+});
+
 const STRAGE_DIR = path.join(process.cwd(), "public", "strage");
+const VIDEO_DIR = path.join(process.cwd(), "public", "video");
 
 function extFromMimetype(mimetype) {
   // 必要に応じて追加
@@ -36,6 +51,39 @@ function extFromMimetype(mimetype) {
     "image/gif": ".gif"
   };
   return map[mimetype] || ".bin";
+}
+
+function extFromVideoMimetype(mimetype) {
+  const map = {
+    "video/mp4": ".mp4",
+    "video/webm": ".webm",
+    "video/quicktime": ".mov"
+  };
+  return map[mimetype] || ".mp4";
+}
+
+async function saveGiftVideo({ giftId, file }) {
+  await fs.mkdir(VIDEO_DIR, { recursive: true });
+
+  const ext = extFromVideoMimetype(file.mimetype);
+  const filename = `${giftId}${ext}`;
+  const filepath = path.join(VIDEO_DIR, filename);
+
+  await fs.writeFile(filepath, file.buffer);
+
+  // public/video は /assets/video/<filename> で配信される
+  return `/assets/video/${filename}`;
+}
+
+async function removeGiftVideoFiles(giftId) {
+  // 拡張子違いが残っても消せるようにする
+  try {
+    const files = await fs.readdir(VIDEO_DIR);
+    const targets = files.filter((f) => f.startsWith(giftId + "."));
+    await Promise.all(targets.map((f) => fs.unlink(path.join(VIDEO_DIR, f)).catch(() => {})));
+  } catch {
+    // ignore
+  }
 }
 
 async function savePlayerImage({ playerId, file }) {
@@ -83,6 +131,10 @@ function applySettingsToRuntime({ config, state, settings }) {
   const def = Number(config.timer?.defaultSeconds);
   if (Number.isFinite(def) && def >= 0) state.timerCount = def;
   if (settings.sc !== undefined) config.sc = settings.sc;
+  if (settings.lastBonusMagnification !== undefined) {
+    config.lastBonusMagnification = settings.lastBonusMagnification;
+    state.lastBonusMagnification = settings.lastBonusMagnification;
+  }
 }
 
 function applyMatchSettingsToRuntime({ config, state, settings }) {
@@ -236,21 +288,106 @@ export function createApiRouter({ state, config, db }) {
     res.json({ ok: true, settings });
   });
 
-  router.put("/settings", express.json(), async (req, res) => {
-    
-    if (!state.timerProcessing && !state.matchProcess) return res.status(503).json({ ok: false, message: "試合を終了してから保存してください。" });
-    try {
-      applySettingsToRuntime({ config, state, settings: saved });
-    } catch (error) {
-      console.log(error)
-      return res.status(503).json({ ok: false, message: "保存に失敗しました"})
+ 
+
+
+  // --- settings ---
+  router.put(
+    "/settings",
+    (req, res, next) => {
+      const ct = String(req.headers["content-type"] || "");
+      if (ct.includes("multipart/form-data")) return uploadVideo.any()(req, res, next);
+      return express.json()(req, res, next);
+    },
+    async (req, res) => {
+      // 試合中の保存は不可（現状メッセージに合わせる）
+      if (state.timerProcessing || state.matchProcess) {
+        return res.status(409).json({ ok: false, message: "試合を終了してから保存してください。" });
+      }
+
+      // settings 本体（json or multipart: body.settings）
+      let incoming = {};
+      try {
+        if (req.body?.settings) incoming = JSON.parse(req.body.settings);
+        else incoming = req.body || {};
+      } catch (e) {
+        console.error("[api/settings] settings parse failed", e);
+        return res.status(400).json({ ok: false, message: "settings の形式が不正です" });
+      }
+
+      // 前回設定（動画削除判定に使う）
+      const prevSettings = db?.enabled ? await db.getSettings() : null;
+
+      // 動画ファイル（fieldname: giftVideo_<GiftId>）
+      const files = Array.isArray(req.files) ? req.files : [];
+      const uploadedGiftIds = new Set();
+
+      for (const f of files) {
+        const field = String(f.fieldname || "");
+        if (!field.startsWith("giftVideo_")) continue;
+        const giftId = field.replace("giftVideo_", "").trim();
+        if (!giftId) continue;
+
+        uploadedGiftIds.add(giftId);
+
+        // 既存のギフト動画は一旦削除して上書き
+        await removeGiftVideoFiles(giftId);
+
+        const url = await saveGiftVideo({ giftId, file: f });
+
+        if (!incoming.gifts) incoming.gifts = {};
+        if (!incoming.gifts[giftId]) incoming.gifts[giftId] = { unitScore: 0, effectVideos: [] };
+        incoming.gifts[giftId].effectVideos = [url];
+      }
+
+      // 「動画削除（effectVideos=[]）」が指定されたギフトは、前回動画も消す
+      try {
+        const prevGifts = prevSettings?.gifts || {};
+        const nextGifts = incoming?.gifts || {};
+        for (const giftId of Object.keys(nextGifts)) {
+          const prevVideos = prevGifts[giftId]?.effectVideos || [];
+          const nextVideos = nextGifts[giftId]?.effectVideos || [];
+
+          const wantsDelete = Array.isArray(nextVideos) && nextVideos.length === 0;
+          if (wantsDelete && prevVideos.length > 0 && !uploadedGiftIds.has(giftId)) {
+            await removeGiftVideoFiles(giftId);
+          }
+        }
+      } catch (e) {
+        console.warn("[api/settings] video delete cleanup failed", e);
+      }
+
+      // DB保存
+      let saved = incoming;
+      if (!dbGuard(db, res)) {
+        // DB無効でも runtime 反映は行う
+        try {
+          applySettingsToRuntime({ config, state, settings: saved });
+        } catch (error) {
+          console.error(error);
+          return res.status(500).json({ ok: false, message: "保存に失敗しました" });
+        }
+        return res.status(201).json({ ok: true, message: "データ保存を利用していません。", settings: saved });
+      }
+
+      try {
+        saved = await db.enqueue(() => db.setSettings(incoming));
+      } catch (e) {
+        console.error("[api/settings] db.setSettings failed", e);
+        return res.status(500).json({ ok: false, message: "保存に失敗しました" });
+      }
+
+      // runtime 反映
+      try {
+        applySettingsToRuntime({ config, state, settings: saved });
+      } catch (error) {
+        console.error(error);
+        return res.status(500).json({ ok: false, message: "保存に失敗しました" });
+      }
+
+      res.json({ ok: true, settings: saved });
     }
-
-    if (!dbGuard(db, res)) return res.status(201).json({ ok: true, message: "データ保存を利用していません。" });
-    const saved = await db.enqueue(() => db.setSettings(req.body || {}));
-
-    res.json({ ok: true, settings: saved });
-  });
+  );
 
   router.put("/matchsettings", express.json(), async (req, res) => {
     const body = (req.body && req.body.settings) ? req.body.settings : (req.body || {});

@@ -77,10 +77,10 @@ h1.title.is-1.text-center.margintop1-5 試合設定
             label.label スピチャ自動開始
             .control#scAutoStartSettings
                 label.radio
-                    input(type="radio", name="answer")
+                    input#scAutoStartOn(type="radio", name="scAutoStart", value="1")
                     | 有効
                 label.radio.marginl1
-                    input(type="radio", name="answer")
+                    input#scAutoStartOff(type="radio", name="scAutoStart", value="0")
                     | 無効
 
         .cell.is-row-start-3.margintop1-5
@@ -140,49 +140,8 @@ h1.title.is-1.text-center.margintop1-5 試合設定
                             th 加算スコア
                             th ギフトエフェクト
                             th 変更 
-                    tfoot 
-                        tr 
-                            th Gift01
-                            th 10
-                            th なし
-                            th
-                                button.button.js-modal-trigger(data-target="edit-gift-model") 変更
-                        tr 
-                            th Gift01
-                            th 10
-                            th なし
-                            th
-                                button.button.js-modal-trigger(data-target="edit-gift-model") 変更
-                        tr 
-                            th Gift01
-                            th 10
-                            th なし
-                            th
-                                button.button.js-modal-trigger(data-target="edit-gift-model") 変更
-                        tr 
-                            th Gift01
-                            th 10
-                            th なし
-                            th
-                                button.button.js-modal-trigger(data-target="edit-gift-model") 変更
-                        tr 
-                            th Gift01
-                            th 10
-                            th なし
-                            th
-                                button.button.js-modal-trigger(data-target="edit-gift-model") 変更
-                        tr 
-                            th Gift01
-                            th 10
-                            th なし
-                            th
-                                button.button.js-modal-trigger(data-target="edit-gift-model") 変更
-                        tr 
-                            th Gift01
-                            th 10
-                            th なし
-                            th
-                                button.button.js-modal-trigger(data-target="edit-gift-model") 変更
+                    tbody#giftListBody
+                        //- rows are rendered by settingspanel
 
         .cell.is-row-start-9.margintop1-5.marginbottom10
             .buttons
@@ -213,7 +172,7 @@ h1.title.is-1.text-center.margintop1-5 試合設定
                     .cell.is-col-span-3
                         .file.has-name
                             label.file-label
-                                input#NewgiftVideoInput.file-input(type="file", name="resume")
+                                input#NewgiftVideoInput.file-input(type="file", name="video", accept="video/*")
                                 span.file-cta
                                     span.file-icon
                                     i.fas.fa-upload
@@ -222,7 +181,8 @@ h1.title.is-1.text-center.margintop1-5 試合設定
 
                     .cell.is-col-start-2.is-row-start-4
                         figure.image.is-128x128
-                            img#NewgiftVideoPreview(src="/assets/img/NoImage.png")
+                            video#NewgiftVideoPreview(controls muted loop preload="metadata" src="")
+                            | お使いのブラウザはvideoタグに対応していません
                     .cell.is-col-start-3.is-row-start-4.is-flex.is-align-items-center
                         button#NewgiftVideoDeletBtn.button ギフト動画削除
 
@@ -257,7 +217,7 @@ h1.title.is-1.text-center.margintop1-5 試合設定
                     .cell.is-col-span-3
                         .file.has-name
                             label.file-label
-                                input#giftEditVideoInput.file-input(type="file", name="resume")
+                                input#giftEditVideoInput.file-input(type="file", name="video", accept="video/*")
                                 span.file-cta
                                     span.file-icon
                                     i.fas.fa-upload
@@ -266,7 +226,8 @@ h1.title.is-1.text-center.margintop1-5 試合設定
 
                     .cell.is-col-start-2.is-row-start-4
                         figure.image.is-128x128
-                            img#giftEditVideoPreview(src="/assets/img/NoImage.png")
+                            video#giftEditVideoPreview(controls muted loop preload="metadata" src="")
+                            | お使いのブラウザはvideoタグに対応していません
                     .cell.is-col-start-3.is-row-start-4.is-flex.is-align-items-center
                         button#giftEditVideoDeletBtn.button ギフト動画削除
 
