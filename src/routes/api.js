@@ -39,8 +39,8 @@ const uploadVideo = multer({
   }
 });
 
-const STRAGE_DIR = path.join(process.cwd(), "public", "strage");
-const VIDEO_DIR = path.join(process.cwd(), "public", "video");
+const STRAGE_DIR = path.join(process.cwd(), "public", "storage", "img");
+const VIDEO_DIR = path.join(process.cwd(), "public", "storage", "video");
 
 function extFromMimetype(mimetype) {
   // 必要に応じて追加
@@ -72,7 +72,7 @@ async function saveGiftVideo({ giftId, file }) {
   await fs.writeFile(filepath, file.buffer);
 
   // public/video は /assets/video/<filename> で配信される
-  return `/assets/video/${filename}`;
+  return `/assets/storage/video/${filename}`;
 }
 
 async function removeGiftVideoFiles(giftId) {
@@ -97,7 +97,7 @@ async function savePlayerImage({ playerId, file }) {
 
   // あなたのサーバでは app.use("/assets", express.static("public")) なので
   // 公開URLは /assets/strage/<filename> が自然
-  return `/assets/strage/${filename}`;
+  return `/assets/storage/img/${filename}`;
 }
 
 // playerId の画像（拡張子違いが残ってても削除できるようにする）
