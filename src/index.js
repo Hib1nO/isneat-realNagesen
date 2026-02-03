@@ -112,6 +112,7 @@ app.get("/admin", (req, res) => res.render("testhtml", {
   port: config.port
 }));
 app.get("/hud", (req, res) => res.render("hud", { title: "HUD" }));
+app.get("/hud02", (req, res) => res.render("battle-bar", { title: "battle-bar" }));
 app.get("/input", (req, res) => res.render("input", { title: "Input" }));
 
 app.use("/api", createApiRouter({ state, config, db }));

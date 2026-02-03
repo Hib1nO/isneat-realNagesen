@@ -1,0 +1,48 @@
+doctype html
+html(lang="ja")
+  head
+    meta(charset="utf-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1")
+    title Battle Bar
+    link(rel="stylesheet" href="/assets/css/battle-bar.css")
+  body
+    .battle(data-left="62" data-right="38")
+      .battle__meta
+        .side
+          .avatar(aria-hidden="true")
+          div(style="min-width:0")
+            .name LEFT TEAM
+            span.sub
+              | Score 
+              span.score#leftScore 12,345
+        .side(style="justify-content:flex-end")
+          div(style="min-width:0; text-align:right")
+            .name RIGHT TEAM
+            span.sub
+              | Score 
+              span.score#rightScore 7,890
+          .avatar(aria-hidden="true")
+
+      .battle__bar(role="img" aria-label="Battle progress bar")
+        //- fill（割合は style で指定）
+        .fill.fill--left#leftFill(style="width:62%")
+        .fill.fill--right#rightFill(style="width:38%")
+
+        .sparkle
+
+        .battle__labels(aria-hidden="true")
+          div#leftPct 62%
+          div#rightPct 38%
+
+        .vs
+          span.vs__dot
+          | VS
+          span.vs__dot
+
+      //- ここから下はデモ。不要なら丸ごと削除OK
+      .demo
+        span Left %
+        input#slider(type="range" min="0" max="100" value="62")
+        span#sliderVal 62
+
+    script(src="/assets/js/battle-bar.js")
