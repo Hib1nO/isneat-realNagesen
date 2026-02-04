@@ -33,8 +33,9 @@ export function createInitialState(config) {
       player02BonusProcess: false,
       noticeSec: config.sc.noticeSeconds,
       missionSec: config.sc.missionSeconds,
-      player01BonusSec: config.sc.bonusSeconds,
-      player02BonusSec: config.sc.bonusSeconds,
+      bonusSec: config.sc.bonusSeconds,
+      player01BonusSec: 0,
+      player02BonusSec: 0,
       magnification: config.sc.scMagnification,
       autoStart: config.sc.autoStart,
       autoStartTime: config.sc.autoStartTime,
@@ -69,7 +70,18 @@ export function resetMatch(state, config) {
   state.videoQueue.player02 = [];
 
   state.sc.process = false;
+  
+  state.sc.noticeProcess = false;
+  state.sc.missionProcess = false;
+  state.sc.player01BonusProcess = false;
+  state.sc.player02BonusProcess = false;
+
   state.sc.noticeSec = config.sc.noticeSeconds
+  state.sc.missionSec = config.sc.missionSeconds;
+  state.sc.bonusSec = config.sc.bonusSeconds;
+  state.sc.player01BonusSec = 0;
+  state.sc.player02BonusSec = 0;
+
   state.sc.success.player01 = false;
   state.sc.success.player02 = false;
   state.lastBounsProcess.player01 = false;

@@ -131,6 +131,147 @@ const ioInput = io.of("/input");
 // speed challenge controller
 const sc = createSCController({ ioAdmin, ioHud, state });
 
+// ------------------------------
+// Match result finalize helpers
+// ------------------------------
+function calcMatchOutcome({ score01, score02 }) {
+  if (score01 > score02) return { outcome: "player01_win", winner: "player01", loser: "player02" };
+  if (score02 > score01) return { outcome: "player02_win", winner: "player02", loser: "player01" };
+  return { outcome: "draw", winner: null, loser: null };
+}
+
+function isAnyTimerMoving(state) {
+  // 「ポーズ中」は結果確定OK
+  if (state.timerPause) return false;
+
+  // match timer
+  if (state.timerProcessing) return true;
+
+  // speed challenge timers
+  const scState = state.sc ?? {};
+  if (scState.process) return true;
+  if (scState.noticeProcess || scState.missionProcess) return true;
+  if (scState.player01BonusProcess || scState.player02BonusProcess) return true;
+
+  return false;
+}
+
+function emitMatchResult(payload) {
+  // HUDへ送信（互換のため2イベント投げます）
+  ioHud.emit("match:result", payload);
+  ioHud.emit("result:show", payload);
+
+  // 管理画面にも通知（必要なら表示に使える）
+  ioAdmin.emit("match:result", payload);
+}
+
+async function finalizeMatchAndSendResult({ reason = "manual" } = {}) {
+  try {
+    // タイマーが動作中なら弾く（ただしポーズ中はOK）
+    if (isAnyTimerMoving(state)) {
+      ioAdmin.emit("notify", {
+        type: "warn",
+        message: "タイマー稼働中は結果確定できません。ポーズしてから実行してください。"
+      });
+      return;
+    }
+
+    // 既に終了済みなら、最後の結果を再送だけする（DB二重保存防止）
+    if (!state.matchProcess && state._lastMatchResult) {
+      emitMatchResult(state._lastMatchResult);
+      ioAdmin.emit("notify", { type: "info", message: "Result re-sent." });
+      return;
+    }
+
+    if (!state.matchProcess) {
+      ioAdmin.emit("notify", { type: "warn", message: "Match is not started." });
+      return;
+    }
+
+    const score = {
+      player01: Number(state.total?.player01 ?? 0),
+      player02: Number(state.total?.player02 ?? 0)
+    };
+    const { outcome, winner, loser } = calcMatchOutcome({
+      score01: score.player01,
+      score02: score.player02
+    });
+
+    const endedAt = Date.now();
+
+    // 先に試合を止める（以降の加点を止める）
+    state.matchProcess = false;
+    state.timerProcessing = false;
+    // ポーズ状態は維持（ポーズして確定する運用があるため）
+    // state.timerPause は触らない
+
+    // SCが走っていたら安全に停止（倍率の復元など）
+    try {
+      sc?.stop?.();
+    } catch (e) {
+      console.warn("[match] sc.stop failed", e);
+    }
+
+    const payload = {
+      reason,
+      outcome,
+      winner,
+      loser,
+      score,
+      matchsettings: {
+        matchformat: state.matchFormat,
+        matchplayers: state.matchplayers
+      },
+      endedAt,
+      matchId: null
+    };
+
+    // DB保存（db.enabled=falseならスキップ）
+    if (db.enabled && db.createMatch) {
+      try {
+        const saved = await db.enqueue(() =>
+          db.createMatch({
+            total: { ...score },
+            matchformat: state.matchFormat,
+            matchplayers: JSON.parse(JSON.stringify(state.matchplayers || {})),
+            matchstate: "終了",
+            outcome,
+            winner,
+            loser,
+            timerCount: state.timerCount,
+            endedAt
+          })
+        );
+        payload.matchId = saved?.matchId ?? null;
+      } catch (e) {
+        console.error("[match] save ended match failed", e);
+        ioAdmin.emit("notify", {
+          type: "error",
+          message: "DB保存に失敗しました（ログを確認してください）"
+        });
+      }
+    }
+
+    // 最後の結果を保持（再表示用）
+    state._lastMatchResult = payload;
+
+    // 結果送信
+    emitMatchResult(payload);
+
+    // 画面側の状態も即時更新
+    ioAdmin.emit("state:update", getPublicState(state));
+    ioHud.emit("state:update", getPublicState(state));
+
+    ioAdmin.emit("notify", {
+      type: "info",
+      message: payload.matchId ? `Result sent & saved. matchId=${payload.matchId}` : "Result sent."
+    });
+  } catch (e) {
+    console.error("[match] finalize error", e);
+    ioAdmin.emit("notify", { type: "error", message: "結果処理でエラーが発生しました（ログを確認してください）" });
+  }
+}
+
 // /input: receives snapshot every 250ms (latest-wins)
 ioInput.on("connection", (socket) => {
   socket.on("snapshot", (payload) => {
@@ -142,7 +283,7 @@ ioInput.on("connection", (socket) => {
 ioAdmin.on("connection", (socket) => {
   socket.emit("state:init", getPublicState(state));
 
-  socket.on("timer:start", ({}) => {
+  socket.on("timer:start", () => {
     var seconds = config.timer.defaultSeconds
     handleTimerStart({ ioAdmin, ioHud, state, seconds });
   });
@@ -151,31 +292,36 @@ ioAdmin.on("connection", (socket) => {
     handleTimerPauseToggle({ ioAdmin, ioHud, state });
   });
 
+  // ★ 結果表示トリガ（admin側からemitして使う）
+  // 互換のため複数名で受け付け
+  socket.on("result:show", () => finalizeMatchAndSendResult({ reason: "result:show" }));
+  socket.on("match:finish", () => finalizeMatchAndSendResult({ reason: "match:finish" }));
+  socket.on("match:showResult", () => finalizeMatchAndSendResult({ reason: "match:showResult" }));
+
+
   socket.on("match:reset", async () => {
     // ★ matchesに1試合ごとにID採番して保存
-    if (db.enabled && db.createMatch) {
-      const saved = await db.enqueue(() =>{
-        if (state.timerCount > 0) {
-          db.createMatch({
-            total: { ...state.total },
-            matchformat: state.matchformat,
-            matchplayers: { ...state.matchplayers},
-            matchstate: "キャンセル",
-            timerCount: state.timerCount,
-            endedAt: Date.now()
-          })
-        }
+      const saved = await db.enqueue(() => {
+        if (!state.matchProcess) return null;
+        return db.createMatch({
+          total: { ...state.total },
+          matchformat: state.matchFormat,
+          matchplayers: JSON.parse(JSON.stringify(state.matchplayers || {})),
+          matchstate: "キャンセル",
+          timerCount: state.timerCount,
+          endedAt: Date.now()
+        });
       });
 
-      if (saved.matchId) {
+      if (saved) {
         ioAdmin.emit("notify", {
           type: "info",
           message: saved?.matchId ? `Saved match result. matchId=${saved.matchId}` : "Saved match result."
         });
       }
-    }
 
     resetMatch(state, config);
+    state._lastMatchResult = null;
     ioAdmin.emit("state:init", getPublicState(state));
     ioHud.emit("state:init", getPublicState(state));
   });
@@ -191,17 +337,33 @@ ioAdmin.on("connection", (socket) => {
   });
 
   socket.on("score:setMagnification", ({ player, magnification }) => {
+    if (!state.matchProcess) return;
     if (player !== "player01" && player !== "player02") return;
     const m = Number(magnification);
     if (!Number.isFinite(m) || m <= 0) return;
     state.magnification[player] = m;
   });
 
+  socket.on("lastbonus:start", (player) => {
+    if (player !== "player01" && player !== "player02") return;
+    const m = Number(config.lastBonusMagnification)
+    if (!Number.isFinite(m) || m <= 0) return;
+    state.lastBounsProcess[player] = true;
+    state.magnification[player] = config.lastBonusMagnification;
+  })
+
+  socket.on("lastbonus:end", (player) => {
+    if (player !== "player01" && player !== "player02") return;
+    state.lastBounsProcess[player] = false;
+    state.magnification[player] = 1;
+  })
+
   socket.on("sc:start", () => {
-    if(!config.sc.autoStart){
+    if (!config.sc.autoStart) {
       sc.start({
-        intervalSec: Number(config.sc.missionSeconds ?? 10),
-        mainSec: Number(config.sc.bonusSeconds ?? 10),
+        noticeSec: Number(config.sc.noticeSeconds ?? 30),
+        missionSec: Number(config.sc.missionSeconds ?? 60),
+        bonusSec: Number(config.sc.bonusSeconds ?? 60),
         magnification: Number(config.sc.scMagnification ?? 2)
       });
     }

@@ -47,11 +47,18 @@ export function handleTimerStart({ ioAdmin, ioHud, state, seconds }) {
 }
 
 export function handleTimerPauseToggle({ ioAdmin, ioHud, state }) {
-  if (!state.timerProcessing) {
+  if (!state.timerProcessing && !state.sc?.process) {
     ioAdmin.emit("notify", { type: "warn", message: "Timer is not running." });
     return;
   }
   state.timerPause = !state.timerPause;
   ioAdmin.emit("timer:pause", { pause: state.timerPause });
   ioHud.emit("timer:pause", { pause: state.timerPause });
+  if (state.timerPause) {
+    ioAdmin.emit("pause:show");
+    ioHud.emit("pause:show");
+  } else {
+    ioAdmin.emit("pause:hide");
+    ioHud.emit("pause:hide");
+  }
 }

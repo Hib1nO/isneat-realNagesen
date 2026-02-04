@@ -87,6 +87,7 @@
   var cacheText = Object.create(null);
   var cacheAttr = Object.create(null);
   var cacheHtml = Object.create(null);
+  var cacheProp = Object.create(null);
   var lastMatchFormat = null;
 
   function setText(idSelector, next) {
@@ -98,6 +99,21 @@
     if (!$el.length) return; // 対象が無い場合は無視（拡張性のため）
     $el.text(val);
     cacheText[key] = val;
+  }
+
+  function setProp(idSelector, propName, next) {
+    var key = "prop:" + idSelector + ":" + propName;
+    var val = next;
+    if (cacheProp[key] === val) return;
+
+    var $el = $(idSelector);
+    if (!$el.length) return;
+    $el.prop(propName, val);
+    cacheProp[key] = val;
+  }
+
+  function setDisabled(idSelector, disabled) {
+    setProp(idSelector, "disabled", !!disabled);
   }
 
   function setHtml(idSelector, nextHtml) {
@@ -167,6 +183,55 @@
     console.warn("[matchpanel] unknown matchformat:", matchFormat);
   }
 
+  
+  // =========================
+  // Controls（ボタンの disabled 切替）
+  // =========================
+  function applyControlState(state) {
+    var mp = !!(state && state.matchProcess === true);
+
+    var timer = (state && state.timer) || {};
+    var timerProcessing = timer.processing === true;
+    var timerCount = toInt(timer.count, null);
+
+    // match start
+    setDisabled("#matchStartBtn", mp);
+
+    // pause（timer.processing が true のときのみ押せる）
+    setDisabled("#matchPauseBtn", !timerProcessing);
+
+    // results display（試合終了: matchProcess=true, timer停止, count<=0 のときのみ表示可能）
+    var canResults = mp && !timerProcessing && timerCount !== null && timerCount <= 0;
+    setDisabled("#resultsDisplayBtn", !canResults);
+
+    // last bonus
+    var lb = (state && state.lastbounsprocess) || {};
+    var lb01 = lb.player01 === true;
+    var lb02 = lb.player02 === true;
+
+    setDisabled("#player01LastBounsStartBtn", lb01);
+    setDisabled("#player01LastBounsEndBtn", !lb01);
+    setDisabled("#player02LastBounsStartBtn", lb02);
+    setDisabled("#player02LastBounsEndBtn", !lb02);
+
+    // sc start（autoStart=false かつ process=false のときのみ開始可能）
+    var sc = (state && state.sc) || {};
+    var canScStart = mp && sc.autoStart === false && sc.process === false;
+    setDisabled("#scStartBtn", !canScStart);
+
+    // sc success（ミッション時間が残っており、未成功のときのみ押せる）
+    var missionSec = toInt(sc.missionSec, 0);
+    var scProcessing = sc.process === true;
+    var success = sc.success || {};
+
+    var canScP01Success = scProcessing && missionSec > 0 && success.player01 === false;
+    var canScP02Success = scProcessing && missionSec > 0 && success.player02 === false;
+
+    setDisabled("#scPlayer01SuccessBtn", !canScP01Success);
+    setDisabled("#scPlayer02SuccessBtn", !canScP02Success);
+  }
+
+
   // =========================
   // State -> DOM
   // 受信state（例）に合わせて参照先を更新
@@ -189,10 +254,11 @@
     var score = state && state.score;
     var mag = score && score.magnification;
 
-    console.log(score)
-
     // matchformatによる表示切替
     applyMatchFormat(matchFormat);
+
+    // ボタン等の操作可否（disabled）
+    applyControlState(state);
 
     // Timers (秒 -> m:ss)
     setText("#matchTimer", formatMMSS(timerCount));
@@ -237,6 +303,169 @@
     setText("#player01NowMagnification", safeStr(mag && mag.player01, "1"));
     setText("#player02NowMagnification", safeStr(mag && mag.player02, "1"));
   }
+
+// =========================
+// UI -> Socket emit
+// =========================
+var UI_EVENT_NS = ".matchpanel";
+
+function safeEmit(socket, eventName, payload) {
+  try {
+    if (!socket) throw new Error("socket が未初期化です");
+    if (socket.connected !== true) {
+      notifySafe("Socket.io 未接続です（送信はキューされる可能性があります）: " + eventName, { type: "warning", timeoutMs: 6000 });
+      errorLog("[matchpanel] emit while disconnected:", eventName, payload || "");
+    }
+    log("[matchpanel] emit:", eventName, payload || "");
+    socket.emit(eventName, payload);
+  } catch (e) {
+    errorLog("[matchpanel] emit error:", eventName, e, payload || "");
+    notifySafe("送信エラー: " + eventName + " / " + (e && e.message ? e.message : e), { type: "danger", timeoutMs: 10000 });
+  }
+}
+
+function readDeltaValue(selector) {
+  try {
+    var raw = $(selector).val();
+    if (raw === null || raw === undefined) return null;
+    var s = String(raw).trim();
+    if (!s) return null;
+
+    // number input でも安全に Number 変換しておく（NaN の場合は文字列のまま送る）
+    var n = Number(s);
+    return isFinite(n) ? n : s;
+  } catch (e) {
+    errorLog("[matchpanel] readDeltaValue error:", selector, e);
+    return null;
+  }
+}
+
+function bindControls(socket) {
+  try {
+    // 試合タイマー
+    $(document)
+      .off("click" + UI_EVENT_NS, "#matchStartBtn")
+      .on("click" + UI_EVENT_NS, "#matchStartBtn", function (e) {
+        e.preventDefault();
+        safeEmit(socket, "timer:start");
+      });
+
+    $(document)
+      .off("click" + UI_EVENT_NS, "#matchPauseBtn")
+      .on("click" + UI_EVENT_NS, "#matchPauseBtn", function (e) {
+        e.preventDefault();
+        safeEmit(socket, "timer:pauseToggle");
+      });
+
+    // 確認ダイアログ付きリセット
+    $(document)
+      .off("click" + UI_EVENT_NS, "#matchResetBtn")
+      .on("click" + UI_EVENT_NS, "#matchResetBtn", function (e) {
+        e.preventDefault();
+        try {
+          var ok = window.confirm("試合をリセットします。よろしいですか？");
+          if (!ok) return;
+          safeEmit(socket, "match:reset");
+        } catch (err) {
+          errorLog("[matchpanel] matchResetBtn handler error:", err);
+          notifySafe("試合リセット処理でエラーが発生しました", { type: "danger", timeoutMs: 10000 });
+        }
+      });
+
+    $(document)
+      .off("click" + UI_EVENT_NS, "#scoreResetBtn")
+      .on("click" + UI_EVENT_NS, "#scoreResetBtn", function (e) {
+        e.preventDefault();
+        try {
+          var ok = window.confirm("スコアをリセットします。よろしいですか？");
+          if (!ok) return;
+          safeEmit(socket, "score:reset");
+        } catch (err) {
+          errorLog("[matchpanel] scoreResetBtn handler error:", err);
+          notifySafe("スコアリセット処理でエラーが発生しました", { type: "danger", timeoutMs: 10000 });
+        }
+      });
+
+    // スコア調整
+    $(document)
+      .off("click" + UI_EVENT_NS, "#scoreAdjustmentBtn")
+      .on("click" + UI_EVENT_NS, "#scoreAdjustmentBtn", function (e) {
+        e.preventDefault();
+
+        try {
+          var d1 = readDeltaValue("#player01ScoreAdjustmentInput");
+          var d2 = readDeltaValue("#player02ScoreAdjustmentInput");
+
+          if (d1 === null && d2 === null) {
+            notifySafe("スコア調整を入力してください", { type: "warning", timeoutMs: 6000 });
+            return;
+          }
+
+          if (d1 !== null) safeEmit(socket, "score:adjust", { player: "player01", delta: d1 });
+          if (d2 !== null) safeEmit(socket, "score:adjust", { player: "player02", delta: d2 });
+        } catch (err) {
+          errorLog("[matchpanel] scoreAdjustmentBtn handler error:", err);
+          notifySafe("スコア調整処理でエラーが発生しました", { type: "danger", timeoutMs: 10000 });
+        }
+      });
+
+    // ラストボーナス
+    $(document)
+      .off("click" + UI_EVENT_NS, "#player01LastBounsStartBtn")
+      .on("click" + UI_EVENT_NS, "#player01LastBounsStartBtn", function (e) {
+        e.preventDefault();
+        safeEmit(socket, "lastbonus:start", { player: "player01" });
+      });
+
+    $(document)
+      .off("click" + UI_EVENT_NS, "#player02LastBounsStartBtn")
+      .on("click" + UI_EVENT_NS, "#player02LastBounsStartBtn", function (e) {
+        e.preventDefault();
+        safeEmit(socket, "lastbonus:start", { player: "player02" });
+      });
+
+    $(document)
+      .off("click" + UI_EVENT_NS, "#player01LastBounsEndBtn")
+      .on("click" + UI_EVENT_NS, "#player01LastBounsEndBtn", function (e) {
+        e.preventDefault();
+        safeEmit(socket, "lastbonus:end", { player: "player01" });
+      });
+
+    $(document)
+      .off("click" + UI_EVENT_NS, "#player02LastBounsEndBtn")
+      .on("click" + UI_EVENT_NS, "#player02LastBounsEndBtn", function (e) {
+        e.preventDefault();
+        safeEmit(socket, "lastbonus:end", { player: "player02" });
+      });
+
+    // SC
+    $(document)
+      .off("click" + UI_EVENT_NS, "#scStartBtn")
+      .on("click" + UI_EVENT_NS, "#scStartBtn", function (e) {
+        e.preventDefault();
+        safeEmit(socket, "sc:start");
+      });
+
+    $(document)
+      .off("click" + UI_EVENT_NS, "#scPlayer01SuccessBtn")
+      .on("click" + UI_EVENT_NS, "#scPlayer01SuccessBtn", function (e) {
+        e.preventDefault();
+        safeEmit(socket, "sc:success", { player: "player01" });
+      });
+
+    $(document)
+      .off("click" + UI_EVENT_NS, "#scPlayer02SuccessBtn")
+      .on("click" + UI_EVENT_NS, "#scPlayer02SuccessBtn", function (e) {
+        e.preventDefault();
+        safeEmit(socket, "sc:success", { player: "player02" });
+      });
+
+    log("[matchpanel] UI bindings registered");
+  } catch (e) {
+    errorLog("[matchpanel] bindControls error:", e);
+    notifySafe("UIイベント登録に失敗しました: " + (e && e.message ? e.message : e), { type: "danger", timeoutMs: 10000 });
+  }
+}
 
   // =========================
   // Socket.io
@@ -295,6 +524,9 @@
     socket.on("state:update", function (payload) {
       handleState("state:update", payload);
     });
+
+    // UI events -> socket emit
+    bindControls(socket);
   }
 
   // DOM Ready
