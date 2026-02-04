@@ -5,30 +5,37 @@ function sleep(ms) {
 export function createSCController({ ioAdmin, ioHud, state }) {
   let running = false;
 
-  async function start({ intervalSec, mainSec, magnification }) {
+  async function start({ noticeSec, missionSec, bonusSec, magnification }) {
     if (running) return;
     running = true;
 
     state.sc.process = true;
-    state.sc.intervalSec = intervalSec;
-    state.sc.mainSec = mainSec;
+    state.sc.noticeProcess = false;
+    state.sc.missionProcess = false;
+    state.sc.player01BonusProcess = false;
+    state.sc.player02BonusProcess = false;
+    state.sc.noticeSec = noticeSec;
+    state.sc.missionSec = missionSec;
+    state.sc.player01BonusSec = bonusSec;
+    state.sc.player02BonusSec = bonusSec;
     state.sc.magnification = magnification;
 
     state.sc.success.player01 = false;
     state.sc.success.player02 = false;
 
-    ioAdmin.emit("sc:start", { intervalSec, mainSec, magnification });
-    ioHud.emit("sc:start", { intervalSec, mainSec, magnification });
+    ioAdmin.emit("sc:start", { noticeSec, missionSec, bonusSec, magnification });
+    ioHud.emit("sc:start", { noticeSec, missionSec, bonusSec, magnification });
 
-    await sleep(500);
-
-    let t = intervalSec;
+    let t = noticeSec;
+    state.sc.noticeProcess = true;
     while (t > 0 && state.sc.process) {
-      ioAdmin.emit("sc:interval", { t });
-      ioHud.emit("sc:interval", { t });
+      state.sc.noticeSec = t;
       await sleep(1000);
       t -= 1;
     }
+
+    ioAdmin.emit("sc:missionStart");
+    ioHud.emit("sc:missionStart");
 
     for (const p of ["player01", "player02"]) {
       if (!state.sc.success[p]) {

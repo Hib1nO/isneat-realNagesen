@@ -143,13 +143,46 @@ function applyMatchSettingsToRuntime({ config, state, settings }) {
   // 反映対象（必要に応じて増やせます）
   if (settings.matchformat) {
     config.matchformat = settings.matchformat;
-    state.matchformat = settings.matchformat;
+    state.matchFormat = settings.matchformat;
   }
 
   if (settings.matchplayers !== undefined) {
     config.matchplayers = settings.matchplayers;
     state.matchplayers = settings.matchplayers;
   }
+}
+
+function syncMatchplayersWithUpdatedPlayer({ state, updatedPlayer }) {
+  // state.matchplayers は settings.matchplayers をそのまま参照している想定
+  // 形: { player01: {id, PlayerName, PlayerImg}, ... }
+  if (!updatedPlayer || typeof updatedPlayer !== "object") return { changed: false };
+  const playerId = updatedPlayer.playerId;
+  if (!playerId) return { changed: false };
+
+  const mp = state?.matchplayers;
+  if (!mp || typeof mp !== "object") return { changed: false };
+
+  const nextName = updatedPlayer.name;
+  const nextImg = updatedPlayer.imageUrl;
+
+  let changed = false;
+  for (const slot of ["player01", "player02", "player03", "player04"]) {
+    const cur = mp?.[slot];
+    if (!cur || typeof cur !== "object") continue;
+    if (cur.id !== playerId) continue;
+
+    // DB側で name が未更新の場合は、空文字で上書きしない
+    if (nextName !== undefined && nextName !== null && String(nextName) !== "") {
+      cur.PlayerName = String(nextName);
+      changed = true;
+    }
+    if (nextImg !== undefined && nextImg !== null) {
+      cur.PlayerImg = String(nextImg);
+      changed = true;
+    }
+  }
+
+  return { changed };
 }
 
 export function createApiRouter({ state, config, db }) {
@@ -261,8 +294,41 @@ export function createApiRouter({ state, config, db }) {
     }
 
     // 3) 更新
-    const updated = await db.enqueue(() => db.updatePlayer(playerId, patch));
-    res.json({ ok: true, item: updated });
+    let updated;
+    try {
+      updated = await db.enqueue(() => db.updatePlayer(playerId, patch));
+    } catch (e) {
+      console.error("[api/players] updatePlayer failed", e);
+      return res.status(500).json({ ok: false, message: "player update failed" });
+    }
+
+    // 4) state.matchplayers が参照しているプレイヤーなら追従更新
+    //    （HUD等が getPublicState 経由で即時反映できるようにする）
+    let matchplayersChanged = false;
+    try {
+      ({ changed: matchplayersChanged } = syncMatchplayersWithUpdatedPlayer({ state, updatedPlayer: updated }));
+    } catch (e) {
+      console.error("[api/players] syncMatchplayersWithUpdatedPlayer failed", e);
+      // 例外時: ログ  通知（APIレスポンス）
+      return res.status(500).json({ ok: false, message: "matchplayers sync failed" });
+    }
+
+    // 5) 永続化（サーバ再起動でも matchplayers の表示が戻らないようにする）
+    //    ※ここが失敗しても、player update 自体は成功しているので 200 を返す
+    if (matchplayersChanged) {
+      try {
+        const current = await db.getSettings();
+        const merged = { ...(current || {}) };
+        // settings には plain object を保存する
+        merged.matchplayers = JSON.parse(JSON.stringify(state.matchplayers));
+        await db.enqueue(() => db.setSettings(merged));
+      } catch (e) {
+        console.warn("[api/players] persist matchplayers to settings failed", e);
+      }
+    }
+
+    res.json({ ok: true, item: updated, matchplayersChanged });
+
   });
 
   router.delete("/players/:playerId", async (req, res) => {

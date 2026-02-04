@@ -16,12 +16,13 @@ h1.title.is-1.text-center 試合管理
         //- player01
         #Player01.cell.box 
             .grid 
-                figure.PlalayerImage-solo.image.is-1by1 
+                figure#player01ImgFigure.PlalayerImage-solo.image.is-1by1 
                     img#player01img(src="https://bulma.io/assets/images/placeholders/256x256.png")
-                figure.PlalayerImage-duo.image.is-1by1.nondisplay  
+                figure#player03ImgFigure.PlalayerImage-duo.image.is-1by1.nondisplay  
                     img#player03img(src="https://bulma.io/assets/images/placeholders/256x256.png")
 
             h1#player01Name.margintop1-5.title.is-1.text-center.cell Player01
+            h2#player03Name.subtitle.is-3.text-center.cell.nondisplay Player03
 
             .Scores
                 .ScoreTitleText.ItemText.text-center Score: 
@@ -56,12 +57,13 @@ h1.title.is-1.text-center 試合管理
         //- player02
         #Player02.cell.box 
             .grid 
-                figure.PlalayerImage-solo.image.is-1by1 
+                figure#player02ImgFigure.PlalayerImage-solo.image.is-1by1 
                     img#player02img(src="https://bulma.io/assets/images/placeholders/256x256.png")
-                figure.PlalayerImage-duo.image.is-1by1.nondisplay  
-                    img#player03img(src="https://bulma.io/assets/images/placeholders/256x256.png")
+                figure#player04ImgFigure.PlalayerImage-duo.image.is-1by1.nondisplay  
+                    img#player04img(src="https://bulma.io/assets/images/placeholders/256x256.png")
 
             h1#player02Name.margintop1-5.title.is-1.text-center.cell Player02
+            h2#player04Name.subtitle.is-3.text-center.cell.nondisplay Player04
 
             .Scores
                 .ScoreTitleText.ItemText.text-center Score: 
@@ -115,7 +117,7 @@ h1.title.is-1.text-center 試合管理
                 .MatchTimerPanel
                     .Timers
                         .ItemTitle.ItemText ボーナス時間: 
-                        #SCBonusTimerPlayer01.ItemText 88:88
+                        #SCBonusTimerPlayer02.ItemText 88:88
 
     .fixed-grid.has-3-cols.margintop1-5
         .marginlr4.grid

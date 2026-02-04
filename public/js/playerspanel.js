@@ -61,8 +61,15 @@ $(function () {
   // 通知
   // =========================
   function notifySafe(msg, opt) {
-    if (typeof notify === "function") return notify(msg, opt);
-    console.warn("[notify]", msg, opt);
+    console.log("[playerspanel][notify]", msg, opt || "");
+
+    try {
+      if (typeof window.notify === "function") return window.notify(msg, opt);
+    } catch (e) {
+      console.warn("[playerspanel][notifySafe] notify failed", e);
+    }
+
+    console.warn("[playerspanel][notify] notify() not found", msg, opt);
   }
 
   // =========================

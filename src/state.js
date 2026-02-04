@@ -27,10 +27,15 @@ export function createInitialState(config) {
     // speed challenge
     sc: {
       process: false,
+      noticeProcess: false,
+      missionProcess: false,
+      player01BonusProcess: false,
+      player02BonusProcess: false,
       noticeSec: config.sc.noticeSeconds,
       missionSec: config.sc.missionSeconds,
       player01BonusSec: config.sc.bonusSeconds,
       player02BonusSec: config.sc.bonusSeconds,
+      magnification: config.sc.scMagnification,
       autoStart: config.sc.autoStart,
       autoStartTime: config.sc.autoStartTime,
       success: { player01: false, player02: false }
