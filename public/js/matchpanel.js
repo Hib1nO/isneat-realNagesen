@@ -441,6 +441,7 @@ function bindControls(socket) {
           var ok = window.confirm("試合をリセットします。よろしいですか？");
           if (!ok) return;
           safeEmit(socket, "match:reset");
+          try { if (typeof window.matchHistoryReload === "function") window.matchHistoryReload({ delayMs: 500 }); } catch (e) {}
         } catch (err) {
           errorLog("[matchpanel] matchResetBtn handler error:", err);
           notifySafe("試合リセット処理でエラーが発生しました", { type: "danger", timeoutMs: 10000 });
@@ -470,6 +471,7 @@ function bindControls(socket) {
           var ok = window.confirm("結果を表示します。よろしいですか？");
           if (!ok) return;
           safeEmit(socket, "match:showResult");
+          try { if (typeof window.matchHistoryReload === "function") window.matchHistoryReload({ delayMs: 500 }); } catch (e) {}
         } catch (err) {
           errorLog("[matchpanel] resultsDisplayBtn handler error:", err);
           notifySafe("結果表示処理でエラーが発生しました", { type: "danger", timeoutMs: 10000 });

@@ -5,6 +5,10 @@ html(lang="ja")
     meta(name="viewport" content="width=device-width, initial-scale=1")
     title Battle Bar
     link(rel="stylesheet" href="/assets/css/battle-bar.css")
+    script(src="/socket.io/socket.io.js")
+    script(src="/assets/js/jquery-4.0.0.min.js")
+    script(src="/assets/js/battle-bar.js")
+
   body
     .battle(data-left="62" data-right="38")
       .battle__meta
@@ -39,10 +43,55 @@ html(lang="ja")
         //-   | VS
         //-   span.vs__dot
 
+      //- ====== Under Bar UI (Timer  Notice) ======
+      .battle__under
+        //- Timer (later replaced by server data)
+        .battle__timer#battleTimer 88:88
+
+        //- Notice (two patterns, same position)
+        //- data-theme: dark | mid | bright
+        .noticeWrap#battleNoticeWrap(data-theme="mid" aria-live="polite")
+          .noticeCard#battleNoticeCard
+            .noticeCard__faces
+              //- Pattern: target gifters
+              .noticeFace.noticeFace--target(data-pattern="target")
+                .noticeFace__content
+                  .notice__icon(aria-hidden="true")
+                    svg.notice__svg(width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg")
+                      path(d="M16.5 11.5C18.433 11.5 20 9.933 20 8C20 6.067 18.433 4.5 16.5 4.5C14.567 4.5 13 6.067 13 8C13 9.933 14.567 11.5 16.5 11.5Z" fill="currentColor")
+                      path(d="M7.5 11.5C9.433 11.5 11 9.933 11 8C11 6.067 9.433 4.5 7.5 4.5C5.567 4.5 4 6.067 4 8C4 9.933 5.567 11.5 7.5 11.5Z" fill="currentColor" opacity="0.9")
+                      path(d="M16.5 13C14.01 13 12 15.01 12 17.5V19.5H23V17.5C23 15.01 20.99 13 18.5 13H16.5Z" fill="currentColor" opacity="0.75")
+                      path(d="M7.5 13C5.01 13 3 15.01 3 17.5V19.5H12V17.5C12 15.01 9.99 13 7.5 13Z" fill="currentColor" opacity="0.8")
+                  .marquee
+                    .marquee__track
+                      .marquee__item#noticeTargetItem
+                        span.notice__label ギフターの目標人数：
+                        span.notice__em#noticeTargetCount 2
+                      .marquee__item(aria-hidden="true")
+
+              //- Pattern: first gift bonus
+              .noticeFace.noticeFace--bonus(data-pattern="bonus")
+                .noticeFace__content
+                  .notice__icon.notice__icon--spacer(aria-hidden="true")
+                    span.notice__spacer
+                  .marquee
+                    .marquee__track
+                      .marquee__item#noticeBonusItem
+                        span.notice__label 初めてのギフトでギフトポイント2倍
+                        span.notice__sep ｜
+                        span.notice__label#noticeBonusSec 10秒
+                      .marquee__item(aria-hidden="true")
+
+
       //- ここから下はデモ。不要なら丸ごと削除OK
       .demo
         span Left %
         input#slider(type="range" min="0" max="100" value="62")
         span#sliderVal 62
+        button#testBtn01.button 通知表示（ギフター目標）
+        button#testBtn02.button 通知表示（初ギフト2倍）
+        button#testBtn03.button テーマ切替dark
+        button#testBtn04.button テーマ切替mid
+        button#testBtn05.button テーマ切替bright
+        button#testBtn06.button 非表示
 
-    script(src="/assets/js/battle-bar.js")
