@@ -132,7 +132,10 @@ function applySettingsToRuntime({ config, state, settings }) {
   if (Number.isFinite(def) && def >= 0) state.timerCount = def;
   if (settings.sc !== undefined) config.sc = settings.sc;
   if (settings.sc.autoStart !== undefined) state.sc.autoStart = settings.sc.autoStart;
-  if (settings.sc.autoStartTime !== undefined) state.sc.autoStartTime = settings.sc.autoStartTime;
+  if (settings.sc.noticeSeconds !== undefined) state.sc.noticeSec = settings.sc.noticeSeconds;
+  if (settings.sc.missionSeconds !== undefined) state.sc.missionSec = settings.sc.missionSeconds;
+  if (settings.sc.bonusSeconds !== undefined) state.sc.bonusSec = settings.sc.bonusSeconds;
+  if (settings.sc.scMagnification !== undefined) state.sc.magnification = settings.sc.scMagnification;
   if (settings.lastBonusMagnification !== undefined) {
     config.lastBonusMagnification = settings.lastBonusMagnification;
     state.lastBonusMagnification = settings.lastBonusMagnification;
