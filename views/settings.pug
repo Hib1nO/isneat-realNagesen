@@ -84,6 +84,17 @@ h1.title.is-1.text-center.margintop1-5 試合設定
                     | 無効
 
         .cell.is-row-start-3.margintop1-5
+            label.label 自動開始時間
+            .SCTimerSettingsAre 
+                .MatchTimerSettingsTitle 残り
+                .MatchTimerSettings
+                    input#scAutoStartTimeMinuteInput.input(type="number", placeholder="Text input")
+                .MatchTimerSettingsTitle 分
+                .MatchTimerSettings
+                    input#scAutoStartTimeSecondInput.input(type="number", placeholder="Text input")
+                .MatchTimerSettingsTitle 秒
+
+        .cell.is-row-start-4.margintop1-5
             label.label スピチャレ告知時間
             .SCTimerSettingsAre 
                 .MatchTimerSettings
@@ -93,7 +104,7 @@ h1.title.is-1.text-center.margintop1-5 試合設定
                     input#scNoticeTimeSecondInput.input(type="number", placeholder="Text input")
                 .MatchTimerSettingsTitle 秒
 
-        .cell.is-row-start-4.margintop1-5
+        .cell.is-row-start-5.margintop1-5
             label.label スピチャミッション時間
             .SCTimerSettingsAre 
                 .MatchTimerSettings
@@ -103,7 +114,7 @@ h1.title.is-1.text-center.margintop1-5 試合設定
                     input#scMissionTimeSecondInput.input(type="number", placeholder="Text input")
                 .MatchTimerSettingsTitle 秒
 
-        .cell.is-row-start-5.margintop1-5
+        .cell.is-row-start-6.margintop1-5
             label.label スピチャボーナス時間
             .SCTimerSettingsAre 
                 .MatchTimerSettings
@@ -113,21 +124,21 @@ h1.title.is-1.text-center.margintop1-5 試合設定
                     input#scBonusTimeSecondInput.input(type="number", placeholder="Text input")
                 .MatchTimerSettingsTitle 秒
 
-        .cell.is-row-start-6.margintop1-5
+        .cell.is-row-start-7.margintop1-5
             label.label スピチャレ倍率
             .SCTimerSettingsAre 
                 .MatchTimerSettings
                     input#scMagnificationInput.input(type="number", placeholder="Text input")
                 .MatchTimerSettingsTitle 倍
 
-        .cell.is-row-start-7.margintop1-5
+        .cell.is-row-start-8.margintop1-5
             label.label ラストボーナス倍率
             .SCTimerSettingsAre 
                 .MatchTimerSettings
                     input#lastBounsMagnificationInput.input(type="number", placeholder="Text input")
                 .MatchTimerSettingsTitle 倍
 
-        .cell.is-col-span-2.is-row-start-8
+        .cell.is-col-span-2.is-row-start-9
             .grid
                 h3.title.is-3.cell ギフト設定
                 .buttons.cell.right-block
@@ -143,7 +154,7 @@ h1.title.is-1.text-center.margintop1-5 試合設定
                     tbody#giftListBody
                         //- rows are rendered by settingspanel
 
-        .cell.is-row-start-9.margintop1-5.marginbottom10
+        .cell.is-row-start-10.margintop1-5.marginbottom10
             .buttons
                 button#matchSettingsSave.button.is-link 保存
                 button#matchSettingsCancel.button キャンセル

@@ -10,7 +10,7 @@ export function createInitialState(config) {
     timerCount: config.timer.defaultSeconds,
 
     // matchsettings
-    matchFormat: 1,
+    matchFormat: config.matchformat,
     matchplayers: config.matchplayers,
 
     // score

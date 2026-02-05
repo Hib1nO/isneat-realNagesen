@@ -367,6 +367,8 @@
     const IN_MATCH_MIN = "#matchTimeMinuteInput";
     const IN_MATCH_SEC = "#matchTimeSecondInput";
 
+    const IN_SC_AUTOSTART_MIN = "#scAutoStartTimeMinuteInput";
+    const IN_SC_AUTOSTART_SEC = "#scAutoStartTimeSecondInput";
     const IN_SC_NOTICE_MIN = "#scNoticeTimeMinuteInput";
     const IN_SC_NOTICE_SEC = "#scNoticeTimeSecondInput";
     const IN_SC_MISSION_MIN = "#scMissionTimeMinuteInput";
@@ -482,6 +484,10 @@
 
       // sc
       const sc = draftSettings.sc || {};
+      const as = secondsToMS(Number(sc.autoStartTime ?? 0));
+      $(IN_SC_AUTOSTART_MIN).val(as.m);
+      $(IN_SC_AUTOSTART_SEC).val(as.s);
+
       const n = secondsToMS(Number(sc.noticeSeconds ?? 0));
       $(IN_SC_NOTICE_MIN).val(n.m);
       $(IN_SC_NOTICE_SEC).val(n.s);
@@ -511,6 +517,7 @@
 
       // sc
       draftSettings.sc = draftSettings.sc || {};
+      draftSettings.sc.autoStartTime = msToSeconds($(IN_SC_AUTOSTART_MIN).val(), $(IN_SC_AUTOSTART_SEC).val());
       draftSettings.sc.noticeSeconds = msToSeconds($(IN_SC_NOTICE_MIN).val(), $(IN_SC_NOTICE_SEC).val());
       draftSettings.sc.missionSeconds = msToSeconds($(IN_SC_MISSION_MIN).val(), $(IN_SC_MISSION_SEC).val());
       draftSettings.sc.bonusSeconds = msToSeconds($(IN_SC_BONUS_MIN).val(), $(IN_SC_BONUS_SEC).val());

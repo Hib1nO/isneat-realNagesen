@@ -344,15 +344,16 @@ ioAdmin.on("connection", (socket) => {
     state.magnification[player] = m;
   });
 
-  socket.on("lastbonus:start", (player) => {
+  socket.on("lastbonus:start", ({player}) => {
     if (player !== "player01" && player !== "player02") return;
     const m = Number(config.lastBonusMagnification)
+    console.log(!Number.isFinite(m) || m <= 0);
     if (!Number.isFinite(m) || m <= 0) return;
     state.lastBounsProcess[player] = true;
     state.magnification[player] = config.lastBonusMagnification;
   })
 
-  socket.on("lastbonus:end", (player) => {
+  socket.on("lastbonus:end", ({player}) => {
     if (player !== "player01" && player !== "player02") return;
     state.lastBounsProcess[player] = false;
     state.magnification[player] = 1;

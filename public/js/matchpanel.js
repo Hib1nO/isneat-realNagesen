@@ -8,6 +8,21 @@
   var DEFAULT_NO_IMAGE = "/assets/img/NoImage.png"; // 必要なら差し替えてください
   var DEBUG = true;
 
+  
+
+// =========================
+// Quick Score Adjustment Buttons
+// ここだけ見れば「10,000 / 5,000 / 1,000」等を簡単に変更できます
+// =========================
+var QUICK_SCORE_ADJUST = [
+  { btn: "#player01ScoreAdjustment01Btn", input: "#player01ScoreAdjustmentInput", delta: 10000 },
+  { btn: "#player01ScoreAdjustment02Btn", input: "#player01ScoreAdjustmentInput", delta: 5000 },
+  { btn: "#player01ScoreAdjustment03Btn", input: "#player01ScoreAdjustmentInput", delta: 1000 },
+  { btn: "#player02ScoreAdjustment01Btn", input: "#player02ScoreAdjustmentInput", delta: 10000 },
+  { btn: "#player02ScoreAdjustment02Btn", input: "#player02ScoreAdjustmentInput", delta: 5000 },
+  { btn: "#player02ScoreAdjustment03Btn", input: "#player02ScoreAdjustmentInput", delta: 1000 }
+];
+
   // =========================
   // Logger
   // =========================
@@ -49,6 +64,19 @@
     return String(v);
   }
 
+  function parseNumberLoose(v) {
+    // number input でも、念のため「10,000」等を許容して数値化
+    var s = safeStr(v, "").replace(/,/g, "").trim();
+    if (!s) return 0;
+    var n = Number(s);
+    return isFinite(n) ? n : 0;
+  }
+
+  function formatNumberWithComma(n) {
+    var x = Number(n);
+    return isFinite(x) ? x.toLocaleString() : "0";
+  }
+
   function formatMMSS(sec) {
     var s = toInt(sec, null);
     if (s === null) return "--:--";
@@ -61,6 +89,41 @@
   function resolveImgPath(p) {
     var s = safeStr(p, "").trim();
     return s ? s : DEFAULT_NO_IMAGE;
+  }
+
+  function addToNumberInput(inputSelector, delta) {
+    var $input = $(inputSelector);
+    if (!$input.length) return;
+
+    var cur = parseNumberLoose($input.val());
+    var d = Number(delta);
+    if (!isFinite(d)) d = 0;
+    var next = cur + d;
+
+    // number input に入れる値はカンマ無しの数値
+    $input.val(next);
+    $input.trigger("input").trigger("change");
+  }
+
+  function clearNumberInput(inputSelector) {
+    var $input = $(inputSelector);
+    if (!$input.length) return;
+
+    // 「未入力状態」に戻す（number input でも placeholder が出る）
+    $input.val("");
+    $input.trigger("input").trigger("change");
+  }
+
+  function initQuickScoreAdjustButtonLabels() {
+    try {
+      QUICK_SCORE_ADJUST.forEach(function (c) {
+        var $btn = $(c.btn);
+        if (!$btn.length) return;
+        $btn.text("+" + formatNumberWithComma(c.delta));
+      });
+    } catch (e) {
+      errorLog("[matchpanel] initQuickScoreAdjustButtonLabels error:", e);
+    }
   }
 
   function escapeHtml(s) {
@@ -192,17 +255,26 @@
 
     var timer = (state && state.timer) || {};
     var timerProcessing = timer.processing === true;
+    var timerPause = timer.pause === true;
+    var macthProcess = state && state.matchProcess === true;
     var timerCount = toInt(timer.count, null);
+
+    var sc = (state && state.sc) || {};
+    var scProcessing = sc.process === true;
 
     // match start
     setDisabled("#matchStartBtn", mp);
 
-    // pause（timer.processing が true のときのみ押せる）
-    setDisabled("#matchPauseBtn", !timerProcessing);
+    // pause
+    //  - matchProcess=true かつ (timer.processing=true または sc.process=true) のときのみ押せる
+    var canPause = mp && (timerProcessing || scProcessing);
+    setDisabled("#matchPauseBtn", !canPause);
 
-    // results display（試合終了: matchProcess=true, timer停止, count<=0 のときのみ表示可能）
-    var canResults = mp && !timerProcessing && timerCount !== null && timerCount <= 0;
-    setDisabled("#resultsDisplayBtn", !canResults);
+    // results display
+    //  - timer.processing=true または sc.process=true の場合は disabled
+    //  - ただし timer.pause=true の場合は disabled を外す
+    var disableResults = ((timerProcessing || scProcessing) && !timerPause) || !macthProcess;
+    setDisabled("#resultsDisplayBtn", disableResults);
 
     // last bonus
     var lb = (state && state.lastbounsprocess) || {};
@@ -214,14 +286,11 @@
     setDisabled("#player02LastBounsStartBtn", lb02);
     setDisabled("#player02LastBounsEndBtn", !lb02);
 
-    // sc start（autoStart=false かつ process=false のときのみ開始可能）
-    var sc = (state && state.sc) || {};
     var canScStart = mp && sc.autoStart === false && sc.process === false;
     setDisabled("#scStartBtn", !canScStart);
 
     // sc success（ミッション時間が残っており、未成功のときのみ押せる）
     var missionSec = toInt(sc.missionSec, 0);
-    var scProcessing = sc.process === true;
     var success = sc.success || {};
 
     var canScP01Success = scProcessing && missionSec > 0 && success.player01 === false;
@@ -253,6 +322,8 @@
 
     var score = state && state.score;
     var mag = score && score.magnification;
+
+    // log("[matchpanel] state:", state);
 
     // matchformatによる表示切替
     applyMatchFormat(matchFormat);
@@ -331,8 +402,11 @@ function readDeltaValue(selector) {
     var s = String(raw).trim();
     if (!s) return null;
 
+    // 念のため「10,000」のような表記も数値化
+    var s2 = s.replace(/,/g, "");
+
     // number input でも安全に Number 変換しておく（NaN の場合は文字列のまま送る）
-    var n = Number(s);
+    var n = Number(s2);
     return isFinite(n) ? n : s;
   } catch (e) {
     errorLog("[matchpanel] readDeltaValue error:", selector, e);
@@ -386,6 +460,36 @@ function bindControls(socket) {
         }
       });
 
+ // 結果表示（確認ダイアログ -> OK のときのみ送信）
+    $(document)
+      .off("click" + UI_EVENT_NS, "#resultsDisplayBtn")
+      .on("click" + UI_EVENT_NS, "#resultsDisplayBtn", function (e) {
+        e.preventDefault();
+        try {
+          var ok = window.confirm("結果を表示します。よろしいですか？");
+          if (!ok) return;
+          safeEmit(socket, "match:showResult");
+        } catch (err) {
+          errorLog("[matchpanel] resultsDisplayBtn handler error:", err);
+          notifySafe("結果表示処理でエラーが発生しました", { type: "danger", timeoutMs: 10000 });
+        }
+      });
+
+    // スコア調整（入力に加算するだけ：送信は #scoreAdjustmentBtn）
+    QUICK_SCORE_ADJUST.forEach(function (c) {
+      $(document)
+        .off("click" + UI_EVENT_NS, c.btn)
+        .on("click" + UI_EVENT_NS, c.btn, function (e) {
+          e.preventDefault();
+          try {
+            addToNumberInput(c.input, c.delta);
+          } catch (err) {
+            errorLog("[matchpanel] quick score adjust handler error:", c, err);
+            notifySafe("スコア調整入力の加算でエラーが発生しました", { type: "danger", timeoutMs: 10000 });
+          }
+        });
+    });
+
     // スコア調整
     $(document)
       .off("click" + UI_EVENT_NS, "#scoreAdjustmentBtn")
@@ -403,6 +507,10 @@ function bindControls(socket) {
 
           if (d1 !== null) safeEmit(socket, "score:adjust", { player: "player01", delta: d1 });
           if (d2 !== null) safeEmit(socket, "score:adjust", { player: "player02", delta: d2 });
+
+          // 結果表示トリガー送信後、スコア調整入力を未入力状態に戻す
+          clearNumberInput("#player01ScoreAdjustmentInput");
+          clearNumberInput("#player02ScoreAdjustmentInput");
         } catch (err) {
           errorLog("[matchpanel] scoreAdjustmentBtn handler error:", err);
           notifySafe("スコア調整処理でエラーが発生しました", { type: "danger", timeoutMs: 10000 });
@@ -481,6 +589,9 @@ function bindControls(socket) {
       notifySafe("socket.io-client が見つかりません（matchpanel.js）", { type: "danger", timeoutMs: 10000 });
       return;
     }
+
+    // ボタン表示（+10,000 等）を設定
+    initQuickScoreAdjustButtonLabels();
 
     var socket;
     try {
