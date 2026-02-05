@@ -292,9 +292,10 @@ var QUICK_SCORE_ADJUST = [
     // sc success（ミッション時間が残っており、未成功のときのみ押せる）
     var missionSec = toInt(sc.missionSec, 0);
     var success = sc.success || {};
+    var missionProcess = sc.missionProcess
 
-    var canScP01Success = scProcessing && missionSec > 0 && success.player01 === false;
-    var canScP02Success = scProcessing && missionSec > 0 && success.player02 === false;
+    var canScP01Success = scProcessing && missionProcess && success.player01 === false;
+    var canScP02Success = scProcessing && missionProcess && success.player02 === false;
 
     setDisabled("#scPlayer01SuccessBtn", !canScP01Success);
     setDisabled("#scPlayer02SuccessBtn", !canScP02Success);

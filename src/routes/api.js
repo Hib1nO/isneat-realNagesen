@@ -131,6 +131,8 @@ function applySettingsToRuntime({ config, state, settings }) {
   const def = Number(config.timer?.defaultSeconds);
   if (Number.isFinite(def) && def >= 0) state.timerCount = def;
   if (settings.sc !== undefined) config.sc = settings.sc;
+  if (settings.sc.autoStart !== undefined) state.sc.autoStart = settings.sc.autoStart;
+  if (settings.sc.autoStartTime !== undefined) state.sc.autoStartTime = settings.sc.autoStartTime;
   if (settings.lastBonusMagnification !== undefined) {
     config.lastBonusMagnification = settings.lastBonusMagnification;
     state.lastBonusMagnification = settings.lastBonusMagnification;
