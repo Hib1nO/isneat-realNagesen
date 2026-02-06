@@ -35,8 +35,14 @@ $(function () {
   setTimerText("88:88");
 
   const barSeqDefaults = {
-    folderPath: "/assets/video/HUDEffects",
-    totalFrames: 44,
+    left: {
+      folderPath: "/assets/video/HUDEffectsLeftPlayer",
+      totalFrames: 44,
+    },
+    right: {
+      folderPath: "/assets/video/HUDEffectsRightPlayer",
+      totalFrames: 44,
+    }
   };
   let barLeftPlayer = null;
   let barRightPlayer = null;
@@ -218,8 +224,11 @@ $(function () {
         setTimeout(() => refreshLayout(next, false), 360);
 
         // start marquee with initial hold so it doesn't jump immediately
+        // delay until width animation completes (260ms) to prevent layout shift
         clearMarqueeDelay(next);
-        applyMarquee($face, true, 2);
+        setTimeout(() => {
+          applyMarquee($face, true, 2);
+        }, 260);
       } else {
         // hidden face: compute and cache desired width for later, but don't change container now
         try {
@@ -335,7 +344,10 @@ $(function () {
 
       // start marquee for visible face with initial hold (2s)
       clearMarqueeDelay(next);
-      applyMarquee($visibleFace, true, 2);
+        // delay until width animation completes (260ms) to prevent layout shift
+        setTimeout(() => {
+          applyMarquee($visibleFace, true, 2);
+        }, 260);
     } catch (e) {
       notifySafe("showNotice failed", e);
     }
@@ -364,8 +376,8 @@ $(function () {
   };
 
   // initial demo state
-  setNoticeTheme("mid");
-  showNotice("target", { count: 2 });
+  // setNoticeTheme("mid");
+  // showNotice("target", { count: 2 });
 
   // --- Left and Right Notice Controller ---
   const createNoticeController = (noticeWrapId, noticeCardId, targetFaceSelector, bonusFaceSelector, targetItemId, bonusItemId) => {
@@ -504,7 +516,10 @@ $(function () {
           refreshLayout(next, false);
           setTimeout(() => refreshLayout(next, false), 360);
           clearMarqueeDelay(next);
-          applyMarquee($face, true, 2);
+          // delay until width animation completes (260ms) to prevent layout shift
+          setTimeout(() => {
+            applyMarquee($face, true, 2);
+          }, 260);
         } else {
           try {
             const w = calcDesiredWidth($face);
@@ -593,7 +608,10 @@ $(function () {
         setTimeout(() => refreshLayout(next, false), 360);
 
         clearMarqueeDelay(next);
-        applyMarquee($visibleFace, true, 2);
+          // delay until width animation completes (260ms) to prevent layout shift
+          setTimeout(() => {
+            applyMarquee($visibleFace, true, 2);
+          }, 260);
       } catch (e) {
         notifySafe(`showNotice failed for ${noticeWrapId}`, e);
       }
@@ -875,13 +893,13 @@ $(function () {
   })
   $('#testBtn25').on('click', () => {
     window.BattleBarUI.leftNotice.showNotice("bonus", {
-      html: "<span class='notice__label'>春の雨がようやく上がった夕方、まだ水たまりが点々と残る歩道をゆっくり歩きながら駅へ向かうと、濡れたアスファルトの匂いに混じってどこかの店から焼きたてのパンの甘い香りが漂い、信号待ちの人たちの肩越しに見えた薄い雲の切れ間から差し込む淡い光が、ビルの窓や街灯のガラスに反射して細かく揺れているのに気づいて、ほんの少し前まで頭の中を占領していた雑多な心配事――返信しそびれた連絡や、思い通りに進まない作業や、理由のはっきりしない焦り――が、その光の揺れと一緒にゆっくりとほどけていくような気がして、立ち止まったついでにイヤホンの音量を落とし、周囲の音に耳を澄ますと、遠くで電車の走る低い響きや、自転車のベル、誰かの笑い声、閉店準備のシャッターの軋む音が一つの街の呼吸みたいに重なり合い、そんな当たり前の景色の中に自分も確かに混ざっているのだと思うと、不思議なくらい肩の力が抜けて、完璧な答えを今すぐ出さなくても、今日できることを一つずつ片付けていけばいいのかもしれない、いや、むしろそうやって進むしかないのだと腹の底で静かに納得し、空の色が少しずつ群青に傾いていくのを眺めながら、さっきまで「嫌だな」と感じていた帰り道が、いつの間にか小さな回復の時間に変わっていることに気づき、改札の前でポケットの中の切符を探し当てたときには、今日という一日が思ったより悪くないどころか、案外ちゃんと意味を持って積み重なっているのかもしれないと、ほんの少しだけ前向きな気持ちになっていた。</span>",
+      html: "<span class='notice__label'>春の雨がようやく上がった夕方、まだ水たまりが点々と残る</span>",
       theme: "bright"
     });
   })
   $('#testBtn26').on('click', () => {
     window.BattleBarUI.rightNotice.showNotice("bonus", {
-      html: "<span class='notice__label'>春の雨がようやく上がった夕方、まだ水たまりが点々と残る歩道をゆっくり歩きながら駅へ向かうと、濡れたアスファルトの匂いに混じってどこかの店から焼きたてのパンの甘い香りが漂い、信号待ちの人たちの肩越しに見えた薄い雲の切れ間から差し込む淡い光が、ビルの窓や街灯のガラスに反射して細かく揺れているのに気づいて、ほんの少し前まで頭の中を占領していた雑多な心配事――返信しそびれた連絡や、思い通りに進まない作業や、理由のはっきりしない焦り――が、その光の揺れと一緒にゆっくりとほどけていくような気がして、立ち止まったついでにイヤホンの音量を落とし、周囲の音に耳を澄ますと、遠くで電車の走る低い響きや、自転車のベル、誰かの笑い声、閉店準備のシャッターの軋む音が一つの街の呼吸みたいに重なり合い、そんな当たり前の景色の中に自分も確かに混ざっているのだと思うと、不思議なくらい肩の力が抜けて、完璧な答えを今すぐ出さなくても、今日できることを一つずつ片付けていけばいいのかもしれない、いや、むしろそうやって進むしかないのだと腹の底で静かに納得し、空の色が少しずつ群青に傾いていくのを眺めながら、さっきまで「嫌だな」と感じていた帰り道が、いつの間にか小さな回復の時間に変わっていることに気づき、改札の前でポケットの中の切符を探し当てたときには、今日という一日が思ったより悪くないどころか、案外ちゃんと意味を持って積み重なっているのかもしれないと、ほんの少しだけ前向きな気持ちになっていた。</span>",
+      html: "<span class='notice__label'>春の雨がようやく上がった夕方、まだ水たまりが点々と残る</span>",
       theme: "bright"
     });
   })
@@ -1397,15 +1415,15 @@ $(function () {
     left: barLeftPlayer,
     right: barRightPlayer,
     playLeft: (folderPath, totalFrames, fps = 30, loop = false) => {
-      const path = folderPath || barSeqDefaults.folderPath;
-      const frames = totalFrames || barSeqDefaults.totalFrames;
+      const path = folderPath || barSeqDefaults.left.folderPath;
+      const frames = totalFrames || barSeqDefaults.left.totalFrames;
       barLeftPlayer.loadSequence(path, frames, fps).then(() => {
         barLeftPlayer.play(loop);
       });
     },
     playRight: (folderPath, totalFrames, fps = 30, loop = false) => {
-      const path = folderPath || barSeqDefaults.folderPath;
-      const frames = totalFrames || barSeqDefaults.totalFrames;
+      const path = folderPath || barSeqDefaults.right.folderPath;
+      const frames = totalFrames || barSeqDefaults.right.totalFrames;
       barRightPlayer.loadSequence(path, frames, fps).then(() => {
         barRightPlayer.play(loop);
       });
@@ -1518,4 +1536,4 @@ $(function () {
       }
     });
   }
-})();
+});

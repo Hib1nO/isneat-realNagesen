@@ -7,25 +7,28 @@ html(lang="ja")
     link(rel="stylesheet" href="/assets/css/battle-bar.css")
     script(src="/socket.io/socket.io.js")
     script(src="/assets/js/jquery-4.0.0.min.js")
+    script(src="/assets/js/game-state.js")
     script(src="/assets/js/battle-bar.js")
 
   body
     .battle(data-left="62" data-right="38")
       .battle__meta
         .side
-          .avatar(aria-hidden="true")
+          .avatar#leftAvatar01(aria-hidden="true")
+          .avatar#leftAvatar02(aria-hidden="true")
           div(style="min-width:0")
-            .name LEFT TEAM
+            .name#leftName LEFT TEAM
             //- span.sub
             //-   | Score 
             //-   span.score#leftScore 12,345
         .side(style="justify-content:flex-end")
           div(style="min-width:0; text-align:right")
-            .name RIGHT TEAM
+            .name#rightName RIGHT TEAM
             //- span.sub
             //-   | Score 
             //-   span.score#rightScore 7,890
-          .avatar(aria-hidden="true")
+          .avatar#rightAvatar01(aria-hidden="true")
+          .avatar#rightAvatar02(aria-hidden="true")
 
       .battle__bar(role="img" aria-label="Battle progress bar")
         //- fill（割合は style で指定）
