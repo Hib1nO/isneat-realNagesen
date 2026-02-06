@@ -43,6 +43,15 @@ html(lang="ja")
         //-   | VS
         //-   span.vs__dot
 
+      //- ====== Sequence Image Players ======
+      .sequence-players
+        .sequence-player.sequence-player--left#sequencePlayerLeft
+          canvas.sequence-player__canvas#canvasLeft
+          audio.sequence-player__audio#audioLeft
+        .sequence-player.sequence-player--right#sequencePlayerRight
+          canvas.sequence-player__canvas#canvasRight
+          audio.sequence-player__audio#audioRight
+
       //- ====== Under Bar UI (Timer  Notice) ======
       .battle__under
         //- Timer (later replaced by server data)
@@ -131,6 +140,13 @@ html(lang="ja")
         span Left %
         input#slider(type="range" min="0" max="100" value="62")
         span#sliderVal 62
+        br
+        span 連番再生：
+        button#testSeqLeft30.button 左30fps再生
+        button#testSeqLeft60.button 左60fps再生
+        button#testSeqRight30.button 右30fps再生
+        button#testSeqRight60.button 右60fps再生
+        button#testSeqStop.button 停止
         button#testBtn01.button 通知表示（ギフター目標）
         button#testBtn02.button 通知表示（初ギフト2倍）
         button#testBtn03.button テーマ切替dark

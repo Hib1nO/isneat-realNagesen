@@ -852,4 +852,250 @@ $(function () {
       theme: "bright"
     });
   })
+
+  // ====== Sequence Image Player ======
+  class SequencePlayer {
+    constructor(canvasId, audioId) {
+      this.canvas = document.getElementById(canvasId);
+      this.ctx = this.canvas ? this.canvas.getContext('2d') : null;
+      this.audio = document.getElementById(audioId);
+      
+      this.images = [];
+      this.currentFrame = 0;
+      this.isPlaying = false;
+      this.fps = 30;
+      this.frameInterval = 1000 / this.fps;
+      this.lastFrameTime = 0;
+      this.animationId = null;
+      
+      this.folderPath = '';
+      this.totalFrames = 0;
+      this.audioPath = '';
+      
+      if (this.canvas) {
+        this.resizeCanvas();
+        window.addEventListener('resize', () => this.resizeCanvas());
+      }
+    }
+    
+    resizeCanvas() {
+      if (!this.canvas) return;
+      const rect = this.canvas.parentElement.getBoundingClientRect();
+      this.canvas.width = rect.width;
+      this.canvas.height = rect.height;
+    }
+    
+    async loadSequence(folderPath, totalFrames, audioPath = '', fps = 30) {
+      try {
+        this.folderPath = folderPath;
+        this.totalFrames = totalFrames;
+        this.audioPath = audioPath;
+        this.fps = fps;
+        this.frameInterval = 1000 / this.fps;
+        this.images = [];
+        this.currentFrame = 0;
+        
+        console.log(`${logPrefix} Loading sequence: ${folderPath}, frames: ${totalFrames}, fps: ${fps}`);
+        
+        // Preload images
+        const loadPromises = [];
+        for (let i = 1; i <= totalFrames; i++) {
+          const frameNum = String(i).padStart(3, '0');
+          const imagePath = `${folderPath}/${frameNum}.png`;
+          
+          const promise = new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve({ index: i - 1, img });
+            img.onerror = () => {
+              console.warn(`${logPrefix} Failed to load: ${imagePath}`);
+              resolve({ index: i - 1, img: null });
+            };
+            img.src = imagePath;
+          });
+          
+          loadPromises.push(promise);
+        }
+        
+        const results = await Promise.all(loadPromises);
+        results.forEach(({ index, img }) => {
+          if (img) this.images[index] = img;
+        });
+        
+        console.log(`${logPrefix} Loaded ${this.images.filter(img => img).length}/${totalFrames} frames`);
+        
+        // Load audio
+        if (this.audio && audioPath) {
+          this.audio.src = audioPath;
+          this.audio.load();
+        }
+        
+        return true;
+      } catch (e) {
+        notifySafe('loadSequence failed', e);
+        return false;
+      }
+    }
+    
+    play() {
+      if (this.isPlaying || !this.images.length) return;
+      
+      this.isPlaying = true;
+      this.currentFrame = 0;
+      this.lastFrameTime = performance.now();
+      
+      // Play audio
+      if (this.audio && this.audioPath) {
+        this.audio.currentTime = 0;
+        this.audio.play().catch(e => console.warn(`${logPrefix} Audio play failed:`, e));
+      }
+      
+      this.animate(this.lastFrameTime);
+    }
+    
+    animate(timestamp) {
+      if (!this.isPlaying) return;
+      
+      const elapsed = timestamp - this.lastFrameTime;
+      
+      if (elapsed >= this.frameInterval) {
+        this.lastFrameTime = timestamp - (elapsed % this.frameInterval);
+        
+        if (this.currentFrame < this.images.length) {
+          this.drawFrame(this.currentFrame);
+          this.currentFrame++;
+        } else {
+          this.stop();
+          return;
+        }
+      }
+      
+      this.animationId = requestAnimationFrame((t) => this.animate(t));
+    }
+    
+    drawFrame(frameIndex) {
+      if (!this.ctx || !this.images[frameIndex]) return;
+      
+      const img = this.images[frameIndex];
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      
+      // Calculate aspect-fit positioning
+      const canvasAspect = this.canvas.width / this.canvas.height;
+      const imgAspect = img.width / img.height;
+      
+      let drawWidth, drawHeight, offsetX, offsetY;
+      
+      if (canvasAspect > imgAspect) {
+        drawHeight = this.canvas.height;
+        drawWidth = img.width * (drawHeight / img.height);
+        offsetX = (this.canvas.width - drawWidth) / 2;
+        offsetY = 0;
+      } else {
+        drawWidth = this.canvas.width;
+        drawHeight = img.height * (drawWidth / img.width);
+        offsetX = 0;
+        offsetY = (this.canvas.height - drawHeight) / 2;
+      }
+      
+      this.ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+    }
+    
+    stop() {
+      this.isPlaying = false;
+      if (this.animationId) {
+        cancelAnimationFrame(this.animationId);
+        this.animationId = null;
+      }
+      if (this.audio) {
+        this.audio.pause();
+        this.audio.currentTime = 0;
+      }
+      if (this.ctx) {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      }
+    }
+    
+    setFPS(fps) {
+      this.fps = fps;
+      this.frameInterval = 1000 / this.fps;
+    }
+  }
+  
+  // Create players
+  const leftPlayer = new SequencePlayer('canvasLeft', 'audioLeft');
+  const rightPlayer = new SequencePlayer('canvasRight', 'audioRight');
+  
+  // Expose to global
+  window.SequencePlayers = {
+    left: leftPlayer,
+    right: rightPlayer,
+    playLeft: (folderPath, totalFrames, audioPath, fps = 30) => {
+      leftPlayer.loadSequence(folderPath, totalFrames, audioPath, fps).then(() => {
+        leftPlayer.play();
+      });
+    },
+    playRight: (folderPath, totalFrames, audioPath, fps = 30) => {
+      rightPlayer.loadSequence(folderPath, totalFrames, audioPath, fps).then(() => {
+        rightPlayer.play();
+      });
+    },
+    stopAll: () => {
+      leftPlayer.stop();
+      rightPlayer.stop();
+    }
+  };
+  
+  // Demo buttons
+  $('#testSeqLeft30').on('click', () => {
+    window.SequencePlayers.playLeft('/assets/video/WinTestVTR', 120, '', 30);
+  });
+  
+  $('#testSeqLeft60').on('click', () => {
+    window.SequencePlayers.playLeft('/assets/video/WinTestVTR', 120, '', 60);
+  });
+  
+  $('#testSeqRight30').on('click', () => {
+    window.SequencePlayers.playRight('/assets/video/LoseTestVTR', 120, '', 30);
+  });
+  
+  $('#testSeqRight60').on('click', () => {
+    window.SequencePlayers.playRight('/assets/video/LoseTestVTR', 120, '', 60);
+  });
+  
+  $('#testSeqStop').on('click', () => {
+    window.SequencePlayers.stopAll();
+  });
+  
+  // Socket integration (when server is ready)
+  if (socket) {
+    // {side:"left"|"right", folderPath:"/path/to/folder", totalFrames:120, audioPath:"/path/to/audio.mp3", fps:30}
+    socket.on("battlebar:sequence", (p) => {
+      try {
+        const side = p.side === "right" ? "right" : "left";
+        const player = side === "right" ? rightPlayer : leftPlayer;
+        const fps = p.fps || 30;
+        
+        player.loadSequence(p.folderPath, p.totalFrames, p.audioPath || '', fps).then(() => {
+          player.play();
+        });
+      } catch (e) {
+        notifySafe('Socket battlebar:sequence handler failed', e);
+      }
+    });
+    
+    // {side:"left"|"right"|"both"}
+    socket.on("battlebar:sequence:stop", (p) => {
+      try {
+        if (p.side === "both" || !p.side) {
+          leftPlayer.stop();
+          rightPlayer.stop();
+        } else if (p.side === "left") {
+          leftPlayer.stop();
+        } else if (p.side === "right") {
+          rightPlayer.stop();
+        }
+      } catch (e) {
+        notifySafe('Socket battlebar:sequence:stop handler failed', e);
+      }
+    });
+  }
 })();
