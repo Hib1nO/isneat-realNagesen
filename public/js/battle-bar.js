@@ -34,6 +34,13 @@ $(function () {
   };
   setTimerText("88:88");
 
+  const barSeqDefaults = {
+    folderPath: "/assets/video/HUDEffects",
+    totalFrames: 44,
+  };
+  let barLeftPlayer = null;
+  let barRightPlayer = null;
+
   // --- Notice Controller ---
   const $noticeWrap = $("#battleNoticeWrap");
   const $noticeCard = $("#battleNoticeCard");
@@ -681,11 +688,35 @@ $(function () {
     });
   }
 
+  const updateBarOverlayTop = () => {
+    const $battle = $(".battle").first();
+    const $bar = $(".battle__bar").first();
+    if ($battle.length === 0 || $bar.length === 0) return;
+    const top = $bar.position().top + $bar.outerHeight();
+    $battle.get(0).style.setProperty("--bar-bottom", `${top}px`);
+  };
+
+  const updateBarSequenceSize = () => {
+    if (barLeftPlayer && barLeftPlayer.resizeCanvas) {
+      barLeftPlayer.resizeCanvas();
+    }
+    if (barRightPlayer && barRightPlayer.resizeCanvas) {
+      barRightPlayer.resizeCanvas();
+    }
+  };
+
+  updateBarOverlayTop();
+  updateBarSequenceSize();
+
   // --- Resize: keep max 80% and marquee correct ---
   let resizeTimer = null;
   $(window).on("resize", () => {
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(() => refreshLayout(currentPattern), 120);
+    resizeTimer = setTimeout(() => {
+      refreshLayout(currentPattern);
+      updateBarOverlayTop();
+      updateBarSequenceSize();
+    }, 120);
   });
 
   // --- Demo slider (existing) ---
@@ -718,6 +749,8 @@ $(function () {
       const base = 20000;
       if ($leftScore.length) $leftScore.text(fmt(Math.round(base * (left / 100))));
       if ($rightScore.length) $rightScore.text(fmt(Math.round(base * (right / 100))));
+
+      updateBarSequenceSize();
     }
 
     $slider.on("input", function () {
@@ -853,12 +886,129 @@ $(function () {
     });
   })
 
+
+  // ====== Video Player ======
+  class VideoPlayer {
+    constructor(videoId) {
+      this.video = document.getElementById(videoId);
+      if (this.video) {
+        this.video.style.display = 'block';
+        // Listen for video end and hide
+        this.video.addEventListener('ended', () => {
+          this.hide();
+        });
+      }
+    }
+    
+    async play(videoPath) {
+      try {
+        if (!this.video) return;
+        this.show();
+        this.video.src = videoPath;
+        this.video.load();
+        
+        // Attempt to play
+        const playPromise = this.video.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(error => {
+            console.warn(`${logPrefix} Video autoplay failed:`, error);
+          });
+        }
+      } catch (e) {
+        notifySafe('VideoPlayer.play failed', e);
+      }
+    }
+    
+    show() {
+      if (this.video) {
+        this.video.style.display = 'block';
+      }
+    }
+    
+    hide() {
+      if (this.video) {
+        this.video.style.opacity = '0';
+        // Wait for fade-out to complete before stopping and hiding
+        setTimeout(() => {
+          if (this.video) {
+            this.video.pause();
+            this.video.currentTime = 0;
+            this.video.style.display = 'none';
+            this.video.style.opacity = '1';
+          }
+        }, 300);
+      }
+    }
+    
+    stop() {
+      if (this.video) {
+        this.video.pause();
+        this.video.currentTime = 0;
+        this.hide();
+      }
+    }
+  }
+  
+  // Create video players
+  const leftVideoPlayer = new VideoPlayer('videoLeft');
+  const rightVideoPlayer = new VideoPlayer('videoRight');
+  
+  // Expose to global
+  window.VideoPlayers = {
+    left: leftVideoPlayer,
+    right: rightVideoPlayer,
+    playLeft: (videoPath) => {
+      leftVideoPlayer.play(videoPath);
+    },
+    playRight: (videoPath) => {
+      rightVideoPlayer.play(videoPath);
+    },
+    stopAll: () => {
+      leftVideoPlayer.stop();
+      rightVideoPlayer.stop();
+    }
+  };
+  
+  // Socket integration (when server is ready)
+  if (socket) {
+    // {side:"left"|"right", videoPath:"/path/to/video.mp4"}
+    socket.on("battlebar:video", (p) => {
+      try {
+        const side = p.side === "right" ? "right" : "left";
+        const player = side === "right" ? rightVideoPlayer : leftVideoPlayer;
+        
+        if (p.videoPath) {
+          player.play(p.videoPath);
+        }
+      } catch (e) {
+        notifySafe('Socket battlebar:video handler failed', e);
+      }
+    });
+    
+    // {side:"left"|"right"|"both"}
+    socket.on("battlebar:video:stop", (p) => {
+      try {
+        if (p.side === "both" || !p.side) {
+          leftVideoPlayer.stop();
+          rightVideoPlayer.stop();
+        } else if (p.side === "left") {
+          leftVideoPlayer.stop();
+        } else if (p.side === "right") {
+          rightVideoPlayer.stop();
+        }
+      } catch (e) {
+        notifySafe('Socket battlebar:video:stop handler failed', e);
+      }
+    });
+  }
+
   // ====== Sequence Image Player ======
   class SequencePlayer {
     constructor(canvasId, audioId) {
       this.canvas = document.getElementById(canvasId);
       this.ctx = this.canvas ? this.canvas.getContext('2d') : null;
       this.audio = document.getElementById(audioId);
+      this.container = this.canvas ? this.canvas.parentElement : null;
       
       this.images = [];
       this.currentFrame = 0;
@@ -867,6 +1017,8 @@ $(function () {
       this.frameInterval = 1000 / this.fps;
       this.lastFrameTime = 0;
       this.animationId = null;
+      this.loop = false;
+      this.isFading = false;
       
       this.folderPath = '';
       this.totalFrames = 0;
@@ -936,10 +1088,11 @@ $(function () {
       }
     }
     
-    play() {
+    play(loop = false) {
       if (this.isPlaying || !this.images.length) return;
       
       this.isPlaying = true;
+      this.loop = loop;
       this.currentFrame = 0;
       this.lastFrameTime = performance.now();
       
@@ -964,8 +1117,17 @@ $(function () {
           this.drawFrame(this.currentFrame);
           this.currentFrame++;
         } else {
-          this.stop();
-          return;
+          if (this.loop) {
+            // Loop: restart from frame 0
+            this.currentFrame = 0;
+            if (this.audio && this.audioPath) {
+              this.audio.currentTime = 0;
+            }
+          } else {
+            // No loop: stop
+            this.stop();
+            return;
+          }
         }
       }
       
@@ -1009,8 +1171,19 @@ $(function () {
         this.audio.pause();
         this.audio.currentTime = 0;
       }
-      if (this.ctx) {
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      
+      // Fade out effect
+      if (this.canvas && this.container && !this.isFading) {
+        this.isFading = true;
+        this.canvas.style.opacity = '0';
+        
+        setTimeout(() => {
+          if (this.ctx) {
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+          }
+          this.canvas.style.opacity = '1';
+          this.isFading = false;
+        }, 300);
       }
     }
     
@@ -1028,19 +1201,220 @@ $(function () {
   window.SequencePlayers = {
     left: leftPlayer,
     right: rightPlayer,
-    playLeft: (folderPath, totalFrames, audioPath, fps = 30) => {
+    playLeft: (folderPath, totalFrames, audioPath, fps = 30, loop = false) => {
       leftPlayer.loadSequence(folderPath, totalFrames, audioPath, fps).then(() => {
-        leftPlayer.play();
+        leftPlayer.play(loop);
       });
     },
-    playRight: (folderPath, totalFrames, audioPath, fps = 30) => {
+    playRight: (folderPath, totalFrames, audioPath, fps = 30, loop = false) => {
       rightPlayer.loadSequence(folderPath, totalFrames, audioPath, fps).then(() => {
-        rightPlayer.play();
+        rightPlayer.play(loop);
       });
     },
     stopAll: () => {
       leftPlayer.stop();
       rightPlayer.stop();
+    }
+  };
+
+  // ====== Bar Sequence Image Player ======
+  class BarSequencePlayer {
+    constructor(canvasId, containerId, folderPath, totalFrames) {
+      this.canvas = document.getElementById(canvasId);
+      this.ctx = this.canvas ? this.canvas.getContext('2d') : null;
+      this.container = document.getElementById(containerId);
+
+      this.images = [];
+      this.currentFrame = 0;
+      this.isPlaying = false;
+      this.fps = 30;
+      this.frameInterval = 1000 / this.fps;
+      this.lastFrameTime = 0;
+      this.animationId = null;
+      this.loop = false;
+      this.isFading = false;
+
+      this.folderPath = folderPath;
+      this.totalFrames = totalFrames;
+
+      if (this.canvas) {
+        this.resizeCanvas();
+        window.addEventListener('resize', () => this.resizeCanvas());
+      }
+    }
+
+    resizeCanvas() {
+      if (!this.canvas) return;
+      const rect = this.canvas.parentElement.getBoundingClientRect();
+      this.canvas.width = rect.width;
+      this.canvas.height = rect.height;
+    }
+
+    async loadSequence(folderPath, totalFrames, fps = 30) {
+      try {
+        this.folderPath = folderPath;
+        this.totalFrames = totalFrames;
+        this.fps = fps;
+        this.frameInterval = 1000 / this.fps;
+        this.images = [];
+        this.currentFrame = 0;
+
+        console.log(`${logPrefix} Loading bar sequence: ${folderPath}, frames: ${totalFrames}, fps: ${fps}`);
+
+        const loadPromises = [];
+        for (let i = 1; i <= totalFrames; i++) {
+          const frameNum = String(i).padStart(3, '0');
+          const imagePath = `${folderPath}/${frameNum}.png`;
+
+          const promise = new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => resolve({ index: i - 1, img });
+            img.onerror = () => {
+              console.warn(`${logPrefix} Failed to load: ${imagePath}`);
+              resolve({ index: i - 1, img: null });
+            };
+            img.src = imagePath;
+          });
+
+          loadPromises.push(promise);
+        }
+
+        const results = await Promise.all(loadPromises);
+        results.forEach(({ index, img }) => {
+          if (img) this.images[index] = img;
+        });
+
+        console.log(`${logPrefix} Loaded ${this.images.filter(img => img).length}/${totalFrames} bar frames`);
+        return true;
+      } catch (e) {
+        notifySafe('loadBarSequence failed', e);
+        return false;
+      }
+    }
+
+    play(loop = false) {
+      if (this.isPlaying || !this.images.length) return;
+
+      this.isPlaying = true;
+      this.loop = loop;
+      this.currentFrame = 0;
+      this.lastFrameTime = performance.now();
+
+      if (this.container) {
+        this.container.classList.add('is-visible');
+      }
+
+      this.animate(this.lastFrameTime);
+    }
+
+    animate(timestamp) {
+      if (!this.isPlaying) return;
+
+      const elapsed = timestamp - this.lastFrameTime;
+
+      if (elapsed >= this.frameInterval) {
+        this.lastFrameTime = timestamp - (elapsed % this.frameInterval);
+
+        if (this.currentFrame < this.images.length) {
+          this.drawFrame(this.currentFrame);
+          this.currentFrame++;
+        } else {
+          if (this.loop) {
+            this.currentFrame = 0;
+          } else {
+            this.stop();
+            return;
+          }
+        }
+      }
+
+      this.animationId = requestAnimationFrame((t) => this.animate(t));
+    }
+
+    drawFrame(frameIndex) {
+      if (!this.ctx || !this.images[frameIndex]) return;
+
+      const img = this.images[frameIndex];
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+      // Cover-style scaling for bar-only effect
+      const scale = Math.max(
+        this.canvas.width / img.width,
+        this.canvas.height / img.height
+      );
+      const drawWidth = img.width * scale;
+      const drawHeight = img.height * scale;
+      const offsetX = (this.canvas.width - drawWidth) / 2;
+      const offsetY = (this.canvas.height - drawHeight) / 2;
+
+      this.ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+    }
+
+    stop() {
+      this.isPlaying = false;
+      if (this.animationId) {
+        cancelAnimationFrame(this.animationId);
+        this.animationId = null;
+      }
+
+      if (this.canvas && this.container && !this.isFading) {
+        this.isFading = true;
+        this.canvas.style.opacity = '0';
+
+        setTimeout(() => {
+          if (this.ctx) {
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+          }
+          this.canvas.style.opacity = '1';
+          this.container.classList.remove('is-visible');
+          this.isFading = false;
+        }, 300);
+      }
+    }
+
+    setFPS(fps) {
+      this.fps = fps;
+      this.frameInterval = 1000 / this.fps;
+    }
+  }
+
+  barLeftPlayer = new BarSequencePlayer(
+    'barSeqCanvasLeft',
+    'barSeqLeft',
+    barSeqDefaults.folderPath,
+    barSeqDefaults.totalFrames
+  );
+  barRightPlayer = new BarSequencePlayer(
+    'barSeqCanvasRight',
+    'barSeqRight',
+    barSeqDefaults.folderPath,
+    barSeqDefaults.totalFrames
+  );
+
+  updateBarSequenceSize();
+
+  window.BarSequencePlayers = {
+    left: barLeftPlayer,
+    right: barRightPlayer,
+    playLeft: (folderPath, totalFrames, fps = 30, loop = false) => {
+      const path = folderPath || barSeqDefaults.folderPath;
+      const frames = totalFrames || barSeqDefaults.totalFrames;
+      barLeftPlayer.loadSequence(path, frames, fps).then(() => {
+        barLeftPlayer.play(loop);
+      });
+    },
+    playRight: (folderPath, totalFrames, fps = 30, loop = false) => {
+      const path = folderPath || barSeqDefaults.folderPath;
+      const frames = totalFrames || barSeqDefaults.totalFrames;
+      barRightPlayer.loadSequence(path, frames, fps).then(() => {
+        barRightPlayer.play(loop);
+      });
+    },
+    stopLeft: () => barLeftPlayer.stop(),
+    stopRight: () => barRightPlayer.stop(),
+    stopAll: () => {
+      barLeftPlayer.stop();
+      barRightPlayer.stop();
     }
   };
   
@@ -1052,6 +1426,14 @@ $(function () {
   $('#testSeqLeft60').on('click', () => {
     window.SequencePlayers.playLeft('/assets/video/WinTestVTR', 120, '', 60);
   });
+
+  $('#testSeqLeft30Loop').on('click', () => {
+    window.SequencePlayers.playLeft('/assets/video/WinTestVTR', 120, '', 30, true);
+  });
+
+  $('#testSeqLeft60Loop').on('click', () => {
+    window.SequencePlayers.playLeft('/assets/video/WinTestVTR', 120, '', 60, true);
+  });
   
   $('#testSeqRight30').on('click', () => {
     window.SequencePlayers.playRight('/assets/video/LoseTestVTR', 120, '', 30);
@@ -1060,22 +1442,60 @@ $(function () {
   $('#testSeqRight60').on('click', () => {
     window.SequencePlayers.playRight('/assets/video/LoseTestVTR', 120, '', 60);
   });
+
+  $('#testSeqRight30Loop').on('click', () => {
+    window.SequencePlayers.playRight('/assets/video/LoseTestVTR', 120, '', 30, true);
+  });
+
+  $('#testSeqRight60Loop').on('click', () => {
+    window.SequencePlayers.playRight('/assets/video/LoseTestVTR', 120, '', 60, true);
+  });
   
   $('#testSeqStop').on('click', () => {
     window.SequencePlayers.stopAll();
   });
   
+  // Video demo buttons
+  $('#testVideoLeft').on('click', () => {
+    window.VideoPlayers.playLeft('/assets/storage/video/Gift02.mp4');
+  });
+  
+  $('#testVideoRight').on('click', () => {
+    window.VideoPlayers.playRight('/assets/storage/video/Gift02.mp4');
+  });
+  
+  $('#testVideoStop').on('click', () => {
+    window.VideoPlayers.stopAll();
+  });
+
+  $('#testLightningLeftOn').on('click', () => {
+    window.BarSequencePlayers.playLeft(null, null, 30, true);
+  });
+
+  $('#testLightningLeftOff').on('click', () => {
+    window.BarSequencePlayers.stopLeft();
+  });
+
+  $('#testLightningRightOn').on('click', () => {
+    window.BarSequencePlayers.playRight(null, null, 30, true);
+  });
+
+  $('#testLightningRightOff').on('click', () => {
+    window.BarSequencePlayers.stopRight();
+  });
+  
   // Socket integration (when server is ready)
   if (socket) {
-    // {side:"left"|"right", folderPath:"/path/to/folder", totalFrames:120, audioPath:"/path/to/audio.mp3", fps:30}
+    // {side:"left"|"right", folderPath:"/path/to/folder", totalFrames:120, audioPath:"/path/to/audio.mp3", fps:30, loop:false}
     socket.on("battlebar:sequence", (p) => {
       try {
         const side = p.side === "right" ? "right" : "left";
         const player = side === "right" ? rightPlayer : leftPlayer;
         const fps = p.fps || 30;
+        const loop = p.loop || false;
         
         player.loadSequence(p.folderPath, p.totalFrames, p.audioPath || '', fps).then(() => {
-          player.play();
+          player.play(loop);
         });
       } catch (e) {
         notifySafe('Socket battlebar:sequence handler failed', e);

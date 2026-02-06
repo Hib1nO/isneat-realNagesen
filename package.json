@@ -1,6 +1,6 @@
 {
-  "name": "gift-server",
-  "version": "0.1.1",
+  "name": "isneat-real-tipping-system",
+  "version": "0.7.0",
   "type": "module",
   "main": "src/index.js",
   "scripts": {
