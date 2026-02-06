@@ -1,6 +1,6 @@
 :root{
   /* ====== Customize ====== */
-  --bar-h: 33px;
+  --bar-h: 66px;
   --radius: 999px;
 
   --left-color-a: #ff3bd4;  /* ピンク寄り */
@@ -26,7 +26,8 @@
 body{
   margin:0;
   /* 背景透明 */
-  background: transparent;
+  /* background: transparent; */
+  background: rgba(0,0,0, 1);
   font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Hiragino Kaku Gothic ProN", "Noto Sans JP", Arial, sans-serif;
   color: var(--text);
 }
@@ -288,10 +289,13 @@ input[type="range"]{
   /* theme presets (dark / mid / bright) */
   --notice-bg-dark-a: #120b12;
   --notice-bg-dark-b: #2a0f21;
+  --notice-bg-dark-start-end: #2e1024;
   --notice-bg-mid-a: #8a0c56;
   --notice-bg-mid-b: #b0106d;
+  --notice-bg-mid-start-end: #7c1250;
   --notice-bg-bright-a: #cf1782;
   --notice-bg-bright-b: #e61991;
+  --notice-bg-bright-start-end: #9e1264;
 }
 
 .noticeWrap{
@@ -357,13 +361,13 @@ input[type="range"]{
 
 /* theme by data-theme — apply background to inner content so each face can size independently */
 .noticeWrap[data-theme="dark"] .noticeFace__content{
-  background: linear-gradient(90deg, rgba(0,0,0,.35) 0%, var(--notice-bg-dark-a) 15%, var(--notice-bg-dark-b) 50%, var(--notice-bg-dark-a) 85%, rgba(0,0,0,.35) 100%);
+  background: linear-gradient(90deg, var(--notice-bg-dark-start-end) 0%, var(--notice-bg-dark-a) 15%, var(--notice-bg-dark-b) 50%, var(--notice-bg-dark-a) 85%, var(--notice-bg-dark-start-end) 100%);
 }
 .noticeWrap[data-theme="mid"] .noticeFace__content{
-  background: linear-gradient(90deg, rgba(0,0,0,.35) 0%, var(--notice-bg-mid-a) 15%, var(--notice-bg-mid-b) 50%, var(--notice-bg-mid-a) 85%, rgba(0,0,0,.35) 100%);
+  background: linear-gradient(90deg, var(--notice-bg-mid-start-end) 0%, var(--notice-bg-mid-a) 15%, var(--notice-bg-mid-b) 50%, var(--notice-bg-mid-a) 85%, var(--notice-bg-mid-start-end) 100%);
 }
 .noticeWrap[data-theme="bright"] .noticeFace__content{
-  background: linear-gradient(90deg, rgba(0,0,0,.35) 0%, var(--notice-bg-bright-a) 15%, var(--notice-bg-bright-b) 50%, var(--notice-bg-bright-a) 85%, rgba(0,0,0,.35) 100%);
+  background: linear-gradient(90deg, var(--notice-bg-bright-start-end) 0%, var(--notice-bg-bright-a) 15%, var(--notice-bg-bright-b) 50%, var(--notice-bg-bright-a) 85%, var(--notice-bg-bright-start-end) 100%);
 }
 
 /* subtle gloss (moved to inner content) */
