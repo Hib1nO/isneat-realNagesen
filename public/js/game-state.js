@@ -22,6 +22,44 @@ $(function () {
     score: null
   };
 
+  const animatePercentageLabel = ($el, toValue, durationMs = 360) => {
+    if (!$el || $el.length === 0) return;
+    const to = Math.round(Number(toValue));
+    const stored = Number($el.data('pctValue'));
+    let from = Number.isFinite(stored) ? stored : parseFloat($el.text());
+    if (!Number.isFinite(from)) from = to;
+
+    const prevAnim = $el.data('pctAnimId');
+    if (prevAnim) cancelAnimationFrame(prevAnim);
+
+    if (from === to) {
+      $el.text(to + "%");
+      $el.data('pctValue', to);
+      return;
+    }
+
+    const start = performance.now();
+    const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+
+    const step = (now) => {
+      const progress = Math.min(1, (now - start) / durationMs);
+      const eased = easeOutCubic(progress);
+      const value = Math.round(from + (to - from) * eased);
+      $el.text(value + "%");
+      if (progress < 1) {
+        const id = requestAnimationFrame(step);
+        $el.data('pctAnimId', id);
+      } else {
+        $el.data('pctValue', to);
+        $el.removeData('pctAnimId');
+      }
+    };
+
+    $el.data('pctValue', from);
+    const id = requestAnimationFrame(step);
+    $el.data('pctAnimId', id);
+  };
+
   // データが変更されたかチェック
   const hasChanged = (key, newValue) => {
     const oldValue = cache[key];
@@ -293,12 +331,12 @@ $(function () {
       $rightFill.css("width", rightPercentage + "%");
     }
 
-    // ラベル更新
+    // ラベル更新（数値をアニメーション）
     if ($leftPct.length > 0) {
-      $leftPct.text(Math.round(leftPercentage) + "%");
+      animatePercentageLabel($leftPct, leftPercentage);
     }
     if ($rightPct.length > 0) {
-      $rightPct.text(Math.round(rightPercentage) + "%");
+      animatePercentageLabel($rightPct, rightPercentage);
     }
 
     // data属性更新（利便性のため）
