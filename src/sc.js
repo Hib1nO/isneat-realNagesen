@@ -15,6 +15,9 @@ export function createSCController({ ioAdmin, ioHud, state }) {
 
   // bonus中に元の倍率へ戻すための退避
   const prevMagnification = { player01: 1, player02: 1 };
+  
+  // notice開始メッセージを一度だけ送信するためのフラグ
+  let noticeMessageSent = false;
 
   function emitBoth(event, payload) {
     ioAdmin.emit(event, payload);
@@ -77,6 +80,14 @@ export function createSCController({ ioAdmin, ioHud, state }) {
 
     // 既存イベント名は維持（main=bonusとして扱う）
     emitBoth("sc:mainStart", { player, mainSec: state.sc[secKey] });
+    
+    // ボーナス開始通知（左右判定）
+    const side = player === "player01" ? "left" : "right";
+    emitBoth(`viewnotify:${side}`, {
+      type: "bonus",
+      theme: "bright",
+      message: `<span class="highlight">${state.sc.magnification}</span>倍ボーナス | 残り${state.sc[secKey]}秒`
+    });
   }
 
   function stopPlayerBonus(player) {
@@ -90,6 +101,19 @@ export function createSCController({ ioAdmin, ioHud, state }) {
 
     // 追加イベント（既存UIが未対応でも問題なし）
     emitBoth("sc:bonusEnd", { player });
+    
+    // ボーナス終了通知（左右判定）
+    const side = player === "player01" ? "left" : "right";
+    emitBoth(`viewnotify:${side}`, {
+      type: "target",
+      theme: "dark",
+      message: `ボーナス時間は終了しました。`
+    });
+    
+    // 5秒後に通知を非表示
+    setTimeout(() => {
+      emitBoth(`hidenotify:${side}`);
+    }, 5000);
   }
 
   function tickOnce() {
@@ -104,9 +128,30 @@ export function createSCController({ ioAdmin, ioHud, state }) {
 
     // ===== notice phase =====
     if (state.sc.noticeProcess) {
-      state.sc.noticeSec = Math.max(0, toSafeInt(state.sc.noticeSec, 0) - 1);
+      // デクリメント前の値を取得
+      const currentNoticeSec = Math.max(0, toSafeInt(state.sc.noticeSec, 0));
+      
+      // 残り5秒以下ならカウントダウン表示
+      if (currentNoticeSec <= 5) {
+        emitBoth("viewnotify:top", {
+          type: "target",
+          theme: "mid",
+          message: `開始まで | ${currentNoticeSec}`
+        });
+      } else if (!noticeMessageSent) {
+        // 初回のみ通知メッセージを送信
+        emitBoth("viewnotify:top", {
+          type: "target",
+          theme: "mid",
+          message: `まもなくスピードチャレンジが開始します。ボーナス時間中は獲得スコアが<span class="highlight">${state.sc.magnification}</span>倍になります。`
+        });
+        noticeMessageSent = true;
+      }
+      
+      // デクリメント
+      state.sc.noticeSec = currentNoticeSec - 1;
 
-      if (state.sc.noticeSec === 0) {
+      if (state.sc.noticeSec <= 0) {
         state.sc.noticeProcess = false;
 
         // mission start
@@ -117,15 +162,43 @@ export function createSCController({ ioAdmin, ioHud, state }) {
 
     // ===== mission phase =====
     if (state.sc.missionProcess) {
-      state.sc.missionSec = Math.max(0, toSafeInt(state.sc.missionSec, 0) - 1);
+      // デクリメント前の値を取得
+      const currentMissionSec = Math.max(0, toSafeInt(state.sc.missionSec, 0));
+      
+      emitBoth("viewnotify:top", {
+        type: "bonus",
+        theme: "mid",
+        message: `ミッション中 | 残り${currentMissionSec}秒`
+      });
+      
+      // デクリメント
+      state.sc.missionSec = currentMissionSec - 1;
 
       // mission終了判定
-      if (state.sc.missionSec === 0) {
+      if (state.sc.missionSec <= 0) {
         state.sc.missionProcess = false;
 
-        // 失敗判定（成功していないプレイヤーはfail）
+        // 成功・失敗判定
+        const player01Success = state.sc.success?.player01;
+        const player02Success = state.sc.success?.player02;
+        
+        // 両方成功した場合は中央の通知を非表示
+        if (player01Success && player02Success) {
+          emitBoth("hidenotify:top");
+        }
+        
+        // 失敗したプレイヤーには失敗通知を送信
         for (const p of ["player01", "player02"]) {
-          if (!state.sc.success?.[p]) emitBoth("sc:fail", { player: p });
+          if (!state.sc.success?.[p]) {
+            emitBoth("sc:fail", { player: p });
+            
+            const side = p === "player01" ? "left" : "right";
+            emitBoth(`viewnotify:${side}`, {
+              type: "target",
+              theme: "dark",
+              message: `ミッションに失敗しました。`
+            });
+          }
         }
 
         emitBoth("sc:missionEnd");
@@ -139,13 +212,24 @@ export function createSCController({ ioAdmin, ioHud, state }) {
 
       if (!state.sc[procKey]) continue;
 
-      const next = Math.max(0, toSafeInt(state.sc[secKey], 0) - 1);
-      state.sc[secKey] = next;
+      // デクリメント前の値を取得
+      const currentBonusSec = Math.max(0, toSafeInt(state.sc[secKey], 0));
 
       // 既存イベント名は維持（payloadにplayerを追加）
-      emitBoth("sc:mainTick", { player: p, t: next });
+      emitBoth("sc:mainTick", { player: p, t: currentBonusSec });
+      
+      // ボーナス時間中の通知（左右判定）
+      const side = p === "player01" ? "left" : "right";
+      emitBoth(`viewnotify:${side}`, {
+        type: "bonus",
+        theme: "bright",
+        message: `<span class="highlight">${state.sc.magnification}</span>倍ボーナス | 残り${currentBonusSec}秒`
+      });
+      
+      // デクリメント
+      state.sc[secKey] = currentBonusSec - 1;
 
-      if (next === 0) stopPlayerBonus(p);
+      if (state.sc[secKey] <= 0) stopPlayerBonus(p);
     }
 
     // ===== finish =====
@@ -168,6 +252,9 @@ export function createSCController({ ioAdmin, ioHud, state }) {
       running = true;
 
       state.sc.process = true;
+      
+      // notice開始メッセージフラグをリセット
+      noticeMessageSent = false;
 
       // phase flags
       state.sc.noticeProcess = true;
@@ -217,7 +304,7 @@ export function createSCController({ ioAdmin, ioHud, state }) {
     }
   }
 
-  function markSuccess(player) {
+  async function markSuccess(player) {
     try {
       if (!state.sc.process) {
         notify("warn", "SC is not running.");
@@ -236,7 +323,30 @@ export function createSCController({ ioAdmin, ioHud, state }) {
 
       emitBoth("sc:success", { player });
 
-      // 成功したプレイヤーだけ即ボーナス開始（ミッションは継続）
+      // 左右判定
+      const side = player === "player01" ? "left" : "right";
+      
+      // 1. ミッション成功通知
+      emitBoth(`viewnotify:${side}`, {
+        type: "bonus",
+        theme: "mid",
+        message: `ミッション成功！`
+      });
+      
+      // 3秒待つ
+      await sleep(3000);
+      
+      // 2. ボーナス開始予告通知
+      emitBoth(`viewnotify:${side}`, {
+        type: "bonus",
+        theme: "mid",
+        message: `まもなく<span class="highlight">${state.sc.magnification}</span>倍のボーナス時間が開始します。`
+      });
+      
+      // 2秒待つ
+      await sleep(2000);
+      
+      // 3. ボーナス開始（ミッションは継続）
       startPlayerBonus(player);
     } catch (e) {
       console.error("[sc] markSuccess error", e);

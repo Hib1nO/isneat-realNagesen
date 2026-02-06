@@ -19,7 +19,8 @@ $(function () {
   const cache = {
     timerValue: null,
     matchsettings: null,
-    score: null
+    score: null,
+    magnification: { player01: 1, player02: 1 }
   };
 
   const animatePercentageLabel = ($el, toValue, durationMs = 360) => {
@@ -73,6 +74,39 @@ $(function () {
     cache[key] = JSON.parse(JSON.stringify(newValue));
   };
 
+  // Magnification変化を監視してバーエフェクトを制御
+  const updateMagnificationEffects = (magnification) => {
+    if (!magnification || !window.BarSequencePlayers) return;
+
+    // Player01のエフェクト制御
+    const mag01 = Number(magnification.player01 || 1);
+    const prevMag01 = Number(cache.magnification.player01 || 1);
+    
+    if (mag01 > 1 && prevMag01 <= 1) {
+      // magnificationが1より大きくなった → エフェクト開始
+      window.BarSequencePlayers.playLeft(null, null, 30, true);
+    } else if (mag01 <= 1 && prevMag01 > 1) {
+      // magnificationが1以下に戻った → エフェクト停止
+      window.BarSequencePlayers.stopLeft();
+    }
+
+    // Player02のエフェクト制御
+    const mag02 = Number(magnification.player02 || 1);
+    const prevMag02 = Number(cache.magnification.player02 || 1);
+    
+    if (mag02 > 1 && prevMag02 <= 1) {
+      // magnificationが1より大きくなった → エフェクト開始
+      window.BarSequencePlayers.playRight(null, null, 30, true);
+    } else if (mag02 <= 1 && prevMag02 > 1) {
+      // magnificationが1以下に戻った → エフェクト停止
+      window.BarSequencePlayers.stopRight();
+    }
+
+    // キャッシュ更新
+    cache.magnification.player01 = mag01;
+    cache.magnification.player02 = mag02;
+  };
+
   // ============================================
   // UI 更新関数
   // ============================================
@@ -102,6 +136,11 @@ $(function () {
         updateBarPosition(state.score);
         updateCache('score', state.score);
       }
+    }
+
+    // Magnification エフェクト制御
+    if (state.score && state.score.magnification) {
+      updateMagnificationEffects(state.score.magnification);
     }
   };
 
@@ -380,6 +419,10 @@ $(function () {
           updateBarPosition(data);
           updateCache('score', data);
         }
+        // Magnification エフェクト制御
+        if (data.magnification) {
+          updateMagnificationEffects(data.magnification);
+        }
       }
     });
   }
@@ -390,6 +433,7 @@ $(function () {
     updateTimer,
     updateMatchDisplay,
     updateBarPosition,
+    updateMagnificationEffects,
     getCache: () => cache  // デバッグ用
   };
 });

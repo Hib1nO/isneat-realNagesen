@@ -2,7 +2,11 @@
 {"playerId":"fd3e57b1-2c00-46c6-8a26-584c40501782","key":null,"name":"TESTPLAYER001","imageUrl":"/assets/storage/img/fd3e57b1-2c00-46c6-8a26-584c40501782.png","createdAt":1770267790704,"updatedAt":1770286651336,"_id":"6tSTVAVvzpeWk8tM"}
 {"playerId":"4784ef96-d232-4222-ac6f-9d70b7eaad5a","key":null,"name":"TESTPLAYER005","imageUrl":"","createdAt":1770267805723,"updatedAt":1770267805723,"_id":"FLTFdHSDLuZizHz0"}
 {"playerId":"d3858cc8-9406-4130-a57b-71d6d8c24ad4","key":null,"name":"TESTPLAYER002","imageUrl":"","createdAt":1770267798041,"updatedAt":1770267798041,"_id":"L8aleU7kjQKWdvjZ"}
+{"playerId":"758191cf-d5bc-4aec-8a9a-2bb244f1a017","key":null,"name":"みれさま","imageUrl":"/assets/storage/img/758191cf-d5bc-4aec-8a9a-2bb244f1a017.png","createdAt":1770370869028,"updatedAt":1770370870323,"_id":"Mvj94YvuL1SmLRWY"}
 {"playerId":"7729fe4f-9889-4d9c-acb6-400c2266cafc","key":null,"name":"TESTPLAYER004","imageUrl":"","createdAt":1770267802877,"updatedAt":1770267802877,"_id":"PSEkuKewWfFsUkME"}
 {"playerId":"7f766f26-6887-4107-a196-1bb7d90cf03c","key":null,"name":"TESTPLAYER006","imageUrl":"","createdAt":1770267808370,"updatedAt":1770267808370,"_id":"Tixoq1UHXvgbVoTn"}
+{"playerId":"a89d61d0-4037-4825-b72a-7b387a16eaa6","key":null,"name":"いぶれお","imageUrl":"/assets/storage/img/a89d61d0-4037-4825-b72a-7b387a16eaa6.png","createdAt":1770372099112,"updatedAt":1770372099115,"_id":"bXS6bOb3DvvDkftY"}
+{"playerId":"e512f10c-3133-49fe-b448-1b3c2725e07c","key":null,"name":"ワレメ","imageUrl":"/assets/storage/img/e512f10c-3133-49fe-b448-1b3c2725e07c.png","createdAt":1770372122067,"updatedAt":1770372122069,"_id":"joAXcL0UAdSSbbmm"}
+{"playerId":"e913dc4c-bee6-4512-9743-af9f0f606f72","key":null,"name":"田中スバル","imageUrl":"/assets/storage/img/e913dc4c-bee6-4512-9743-af9f0f606f72.png","createdAt":1770372114429,"updatedAt":1770372114431,"_id":"nNcFi1FeJy1cpNjc"}
 {"$$indexCreated":{"fieldName":"playerId","unique":true,"sparse":false}}
 {"$$indexCreated":{"fieldName":"playerId","unique":true}}

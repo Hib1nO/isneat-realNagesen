@@ -704,6 +704,85 @@ $(function () {
         notifySafe("battlebar:notice handler failed", e);
       }
     });
+
+    // viewnotify:top - 中央の通知を表示
+    socket.on("viewnotify:top", (payload) => {
+      try {
+        const { type, message, theme: payloadTheme } = payload || {};
+        if (!message) return;
+        
+        // messageをHTMLとして設定
+        const pattern = type === "bonus" ? "bonus" : "target";
+        const theme = payloadTheme || (type === "bonus" ? "bright" : "mid");
+        
+        setNoticeTheme(theme);
+        setNoticeHTML(pattern, `<span class="notice__label">${message}</span>`);
+        showNotice(pattern);
+      } catch (e) {
+        notifySafe("viewnotify:top handler failed", e);
+      }
+    });
+
+    // viewnotify:left - 左プレイヤーの通知を表示
+    socket.on("viewnotify:left", (payload) => {
+      try {
+        const { type, message, theme: payloadTheme } = payload || {};
+        if (!message) return;
+        
+        const pattern = type === "bonus" ? "bonus" : "target";
+        const theme = payloadTheme || (type === "bonus" ? "bright" : "mid");
+        
+        leftNoticeController.setNoticeTheme(theme);
+        leftNoticeController.setNoticeHTML(pattern, `<span class="notice__label">${message}</span>`);
+        leftNoticeController.showNotice(pattern);
+      } catch (e) {
+        notifySafe("viewnotify:left handler failed", e);
+      }
+    });
+
+    // viewnotify:right - 右プレイヤーの通知を表示
+    socket.on("viewnotify:right", (payload) => {
+      try {
+        const { type, message, theme: payloadTheme } = payload || {};
+        if (!message) return;
+        
+        const pattern = type === "bonus" ? "bonus" : "target";
+        const theme = payloadTheme || (type === "bonus" ? "bright" : "mid");
+        
+        rightNoticeController.setNoticeTheme(theme);
+        rightNoticeController.setNoticeHTML(pattern, `<span class="notice__label">${message}</span>`);
+        rightNoticeController.showNotice(pattern);
+      } catch (e) {
+        notifySafe("viewnotify:right handler failed", e);
+      }
+    });
+
+    // hidenotify:left - 左プレイヤーの通知を非表示
+    socket.on("hidenotify:left", () => {
+      try {
+        leftNoticeController.hideNotice();
+      } catch (e) {
+        notifySafe("hidenotify:left handler failed", e);
+      }
+    });
+
+    // hidenotify:right - 右プレイヤーの通知を非表示
+    socket.on("hidenotify:right", () => {
+      try {
+        rightNoticeController.hideNotice();
+      } catch (e) {
+        notifySafe("hidenotify:right handler failed", e);
+      }
+    });
+
+    // hidenotify:top - 中央の通知を非表示
+    socket.on("hidenotify:top", () => {
+      try {
+        hideNotice();
+      } catch (e) {
+        notifySafe("hidenotify:top handler failed", e);
+      }
+    });
   }
 
   const updateBarOverlayTop = () => {
