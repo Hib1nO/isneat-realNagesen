@@ -375,6 +375,7 @@ input[type="range"]{
   gap: 51px;
   will-change: transform;
   min-width: 100%;
+  padding-left: var(--marquee-pad, 0px);
 }
 
 /* When marquee is active, align track to start so scrolling begins from the head */
@@ -422,6 +423,7 @@ input[type="range"]{
 .noticeWrap .noticeFace.is-marquee .marquee__track{
   animation: notice-marquee var(--marquee-dur, 10s) linear infinite;
   animation-delay: var(--marquee-delay, 0s);
+  animation-fill-mode: both; /* keep the head frame during delay */
 }
 /* apply edge fade only when marquee is active to avoid clipping first/last chars */
 .noticeWrap .noticeFace.is-marquee .marquee{

@@ -112,18 +112,26 @@ $(function () {
             item1.innerHTML = item0.innerHTML;
 
             // 2) compute shift/duration and set CSS vars BEFORE enabling animation
-            const shift = contentW + gap;
+            const startPad = 20;
+            const shift = contentW + gap + startPad;
             const pxPerSec = 70;
             const dur = Math.max(4, shift / pxPerSec);
             track.style.setProperty("--marquee-shift", shift + "px");
             track.style.setProperty("--marquee-dur", dur + "s");
+            track.style.setProperty("--marquee-pad", startPad + "px");
             // hold the initial view for a short period before starting the scroll
-            const hold = Number(initialHoldSec) || 0;
+            const hold = Number(initialHoldSec) || 2;
             track.style.setProperty("--marquee-delay", hold + "s");
+            // reset animation so delay takes effect even when restarting while already running
+            try{
+              track.style.animation = 'none';
+              track.getBoundingClientRect(); // force reflow
+            } catch (e) { /* ignore */ }
             // also set inline animation as a fallback to ensure animation runs
             try {
               // shorthand: name duration timing-function delay iteration-count
               track.style.animation = `notice-marquee ${dur}s linear ${hold}s infinite`;
+              track.style.animationFillMode = "both";
             } catch (e) { /* ignore */ }
 
             console.debug(logPrefix, 'start marquee', {
@@ -156,6 +164,7 @@ $(function () {
             track.style.setProperty("--marquee-shift", "0px");
             track.style.setProperty("--marquee-dur", "0s");
             track.style.setProperty("--marquee-delay", "0s");
+            track.style.setProperty("--marquee-pad", "0px");
             try { track.style.animation = 'none'; } catch (e) {}
             try { $face.removeData('marqueePending'); } catch (e) {}
           }
@@ -166,6 +175,7 @@ $(function () {
           track.style.setProperty("--marquee-shift", "0px");
           track.style.setProperty("--marquee-dur", "0s");
           track.style.setProperty("--marquee-delay", "0s");
+          track.style.setProperty("--marquee-pad", "0px");
           try { track.style.animation = 'none'; } catch (e) {}
           try { $face.removeData('marqueePending'); } catch (e) {}
         }
