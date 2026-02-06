@@ -112,13 +112,13 @@ $(function () {
             item1.innerHTML = item0.innerHTML;
 
             // 2) compute shift/duration and set CSS vars BEFORE enabling animation
-            const startPad = 20;
+            const startPad = 1.5;
             const shift = contentW + gap + startPad;
             const pxPerSec = 70;
             const dur = Math.max(4, shift / pxPerSec);
             track.style.setProperty("--marquee-shift", shift + "px");
             track.style.setProperty("--marquee-dur", dur + "s");
-            track.style.setProperty("--marquee-pad", startPad + "px");
+            track.style.setProperty("--marquee-pad", startPad + "em");
             // hold the initial view for a short period before starting the scroll
             const hold = Number(initialHoldSec) || 2;
             track.style.setProperty("--marquee-delay", hold + "s");
