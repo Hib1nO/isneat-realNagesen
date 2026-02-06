@@ -272,6 +272,9 @@ $(function () {
     const next = pattern === "bonus" ? "bonus" : "target";
 
     try {
+      // set theme if provided
+      if (payload.theme) setNoticeTheme(payload.theme);
+      
       // content update (color switch is cut, per requirement)
       if (next === "target") {
         if (payload.count != null) $targetCount.text(String(payload.count));
@@ -357,6 +360,287 @@ $(function () {
   setNoticeTheme("mid");
   showNotice("target", { count: 2 });
 
+  // --- Left and Right Notice Controller ---
+  const createNoticeController = (noticeWrapId, noticeCardId, targetFaceSelector, bonusFaceSelector, targetItemId, bonusItemId) => {
+    const $wrap = $(`#${noticeWrapId}`);
+    const $card = $(`#${noticeCardId}`);
+    const $targetFace = $(`${targetFaceSelector}`).closest('.noticeWrap').find('.noticeFace--target');
+    const $bonusFace = $(`${bonusFaceSelector}`).closest('.noticeWrap').find('.noticeFace--bonus');
+    const $targetItem = $(`#${targetItemId}`);
+    const $bonusItem = $(`#${bonusItemId}`);
+    
+    let currentPattern = "target";
+    const marqueeDelayTimers = { target: null, bonus: null };
+
+    const calcDesiredWidth = ($face) => {
+      try {
+        const $item0 = $face.find(".marquee__track .marquee__item").first();
+        let bodyW = 0;
+        if ($item0.length) {
+          bodyW = $item0.get(0).scrollWidth;
+        } else {
+          const $label = $face.find(".notice__label").first();
+          bodyW = $label.length ? $label.get(0).scrollWidth : 0;
+        }
+        const contentPadding = 54;
+        const $icon = $face.find(".notice__icon:not(.notice__icon--spacer)");
+        const iconAdd = $icon.length ? 57 : 0;
+        const needed = Math.ceil(bodyW + contentPadding + iconAdd);
+        const min = 120;
+        return Math.min(getMaxNoticeWidth(), Math.max(min, needed));
+      } catch (e) {
+        notifySafe(`calcDesiredWidth failed for ${noticeWrapId}`, e);
+        return getMaxNoticeWidth();
+      }
+    };
+
+    const applyWidth = (pattern) => {
+      if ($wrap.length === 0) return;
+      const $face = pattern === "bonus" ? $bonusFace : $targetFace;
+      const w = calcDesiredWidth($face);
+      const cur = $wrap.width() || 0;
+      if (Math.abs(cur - w) < 1) return;
+      $wrap.css("width", w + "px");
+    };
+
+    const applyMarquee = ($face, allowStart = true, initialHoldSec = 0) => {
+      try {
+        const marquee = $face.find(".marquee").get(0);
+        const track = $face.find(".marquee__track").get(0);
+        const $items = $face.find(".marquee__track .marquee__item");
+        if (!marquee || !track || $items.length < 2) return;
+
+        const item0 = $items.get(0);
+        const item1 = $items.get(1);
+
+        requestAnimationFrame(() => {
+          const containerW = marquee.clientWidth;
+          const contentW = item0.scrollWidth;
+          const gap = 51;
+          if (contentW > containerW + 2) {
+            if (allowStart || $face.hasClass("is-marquee")) {
+              item1.innerHTML = item0.innerHTML;
+              const startPad = 1;
+              const shift = contentW + gap + startPad;
+              const pxPerSec = 70;
+              const dur = Math.max(4, shift / pxPerSec);
+              track.style.setProperty("--marquee-shift", shift + "px");
+              track.style.setProperty("--marquee-dur", dur + "s");
+              track.style.setProperty("--marquee-pad", startPad + "em");
+              const hold = Number(initialHoldSec) || 2;
+              track.style.setProperty("--marquee-delay", hold + "s");
+              try{
+                track.style.animation = 'none';
+                track.getBoundingClientRect();
+              } catch (e) { /* ignore */ }
+              try {
+                track.style.animation = `notice-marquee ${dur}s linear ${hold}s infinite`;
+                track.style.animationFillMode = "both";
+              } catch (e) { /* ignore */ }
+              try {
+                track.style.transform = 'translateX(0)';
+                track.getBoundingClientRect();
+                track.style.transform = '';
+              } catch (e) { /* ignore */ }
+              try { $face.data('marqueePending', true); } catch (e) {}
+              $face.addClass("is-marquee");
+              try {
+                const clearAfter = Math.max(0, (hold * 1000) + 120);
+                setTimeout(() => {
+                  try { $face.removeData('marqueePending'); } catch (e) {}
+                }, clearAfter);
+              } catch (e) { /* ignore */ }
+            } else {
+              item1.innerHTML = "";
+              $face.removeClass("is-marquee");
+              track.style.setProperty("--marquee-shift", "0px");
+              track.style.setProperty("--marquee-dur", "0s");
+              track.style.setProperty("--marquee-delay", "0s");
+              track.style.setProperty("--marquee-pad", "0px");
+              try { track.style.animation = 'none'; } catch (e) {}
+              try { $face.removeData('marqueePending'); } catch (e) {}
+            }
+          } else {
+            item1.innerHTML = "";
+            $face.removeClass("is-marquee");
+            track.style.setProperty("--marquee-shift", "0px");
+            track.style.setProperty("--marquee-dur", "0s");
+            track.style.setProperty("--marquee-delay", "0s");
+            track.style.setProperty("--marquee-pad", "0px");
+            try { track.style.animation = 'none'; } catch (e) {}
+            try { $face.removeData('marqueePending'); } catch (e) {}
+          }
+        });
+      } catch (e) {
+        notifySafe(`applyMarquee failed for ${noticeWrapId}`, e);
+      }
+    };
+
+    const clearMarqueeDelay = (name) => {
+      try {
+        if (!name) return;
+        if (marqueeDelayTimers[name]) {
+          clearTimeout(marqueeDelayTimers[name]);
+          marqueeDelayTimers[name] = null;
+        }
+      } catch (e) { /* ignore */ }
+    };
+
+    const setNoticeHTML = (pattern, html) => {
+      const next = pattern === "bonus" ? "bonus" : "target";
+      const $faceItem = next === "bonus" ? $bonusItem : $targetItem;
+      const $face = next === "bonus" ? $bonusFace : $targetFace;
+
+      try {
+        $faceItem.html(html);
+        if (next === currentPattern) {
+          refreshLayout(next, false);
+          setTimeout(() => refreshLayout(next, false), 360);
+          clearMarqueeDelay(next);
+          applyMarquee($face, true, 2);
+        } else {
+          try {
+            const w = calcDesiredWidth($face);
+            $face.data('desiredWidth', w);
+          } catch (e) { /* ignore */ }
+          clearMarqueeDelay(next);
+        }
+      } catch (e) {
+        notifySafe(`setNoticeHTML failed for ${noticeWrapId}`, e);
+      }
+    };
+
+    const refreshLayout = (pattern, allowMarqueeStart = false) => {
+      if (!allowMarqueeStart) {
+        [$targetFace, $bonusFace].forEach(($f) => {
+          try {
+            if ($f.data && $f.data('marqueePending')) return;
+            const track = $f.find('.marquee__track').get(0);
+            const $items = $f.find('.marquee__track .marquee__item');
+            if ($items && $items.length >= 2) {
+              $items.get(1).innerHTML = "";
+            }
+            $f.removeClass('is-marquee');
+            if (track) {
+              track.style.setProperty('--marquee-shift', '0px');
+              track.style.setProperty('--marquee-dur', '0s');
+              try { track.style.animation = 'none'; } catch (e) {}
+            }
+          } catch (e) {
+            /* ignore */
+          }
+        });
+      }
+
+      applyWidth(pattern);
+      applyMarquee(pattern === "bonus" ? $bonusFace : $targetFace, allowMarqueeStart, allowMarqueeStart ? 2 : 0);
+    };
+
+    const setNoticeTheme = (theme) => {
+      if ($wrap.length === 0) return;
+      const v = String(theme || "mid");
+      $wrap.attr("data-theme", v);
+    };
+
+    const showNotice = (pattern, payload = {}) => {
+      if ($wrap.length === 0 || $card.length === 0) {
+        return;
+      }
+      const next = pattern === "bonus" ? "bonus" : "target";
+
+      try {
+        // set theme if provided
+        if (payload.theme) setNoticeTheme(payload.theme);
+        
+        if (next === "target") {
+          if (payload.html != null) setNoticeHTML('target', payload.html);
+        } else {
+          if (payload.html != null) setNoticeHTML('bonus', payload.html);
+        }
+
+        $wrap.addClass("is-visible");
+        try {
+          $wrap.css({opacity: '1', transform: 'scaleX(1)'});
+        } catch (e) {}
+
+        if (next !== currentPattern) {
+          $card.toggleClass("is-flipped", next === "bonus");
+          currentPattern = next;
+        } else {
+          $card.toggleClass("is-flipped", next === "bonus");
+        }
+
+        const $visibleFace = next === "bonus" ? $bonusFace : $targetFace;
+        clearMarqueeDelay(next);
+
+        const cached = $visibleFace.data('desiredWidth');
+        if (typeof cached === 'number') {
+          const cur = $wrap.width() || 0;
+          if (Math.abs(cur - cached) >= 1) {
+            $wrap.css('width', cached + 'px');
+          }
+          $visibleFace.removeData('desiredWidth');
+        } else {
+          refreshLayout(next, false);
+        }
+        setTimeout(() => refreshLayout(next, false), 360);
+
+        clearMarqueeDelay(next);
+        applyMarquee($visibleFace, true, 2);
+      } catch (e) {
+        notifySafe(`showNotice failed for ${noticeWrapId}`, e);
+      }
+    };
+
+    const hideNotice = () => {
+      if ($wrap.length === 0) return;
+      try {
+        $wrap.css({opacity: '0', transform: 'scaleX(0)'});
+      } catch (e) { /* ignore */ }
+      $wrap.removeClass("is-visible");
+      clearMarqueeDelay('target');
+      clearMarqueeDelay('bonus');
+      [$targetFace, $bonusFace].forEach(($f) => {
+        try {
+          $f.removeClass('is-marquee');
+          const track = $f.find('.marquee__track').get(0);
+          if (track) {
+            track.style.setProperty('--marquee-shift', '0px');
+            track.style.setProperty('--marquee-dur', '0s');
+          }
+        } catch (e) { /* ignore */ }
+      });
+    };
+
+    return {
+      showNotice,
+      hideNotice,
+      setNoticeTheme,
+      setNoticeHTML,
+      setNoticeText: (pattern, text) => setNoticeHTML(pattern, `<span class="notice__label">${String(text)}</span>`),
+      refreshLayout: () => refreshLayout(currentPattern),
+    };
+  };
+
+  // Create controllers for left and right notices
+  const leftNoticeController = createNoticeController(
+    'battleNoticeWrapLeft',
+    'battleNoticeCardLeft',
+    '#noticeTargetItemLeft',
+    '#noticeBonusItemLeft',
+    'noticeTargetItemLeft',
+    'noticeBonusItemLeft'
+  );
+
+  const rightNoticeController = createNoticeController(
+    'battleNoticeWrapRight',
+    'battleNoticeCardRight',
+    '#noticeTargetItemRight',
+    '#noticeBonusItemRight',
+    'noticeTargetItemRight',
+    'noticeBonusItemRight'
+  );
+
   // expose for debug / server integration
   window.BattleBarUI = {
     setTimerText,
@@ -368,6 +652,9 @@ $(function () {
     setNoticeHTML: (pattern, html) => setNoticeHTML(pattern, html),
     // convenience: set plain text (wraps in span.notice__label with proper styling)
     setNoticeText: (pattern, text) => setNoticeHTML(pattern, `<span class="notice__label">${String(text)}</span>`),
+    // Left and right notice controllers
+    leftNotice: leftNoticeController,
+    rightNotice: rightNoticeController,
   };
 
   // --- Optional: Socket hooks (when server is ready) ---
@@ -484,4 +771,85 @@ $(function () {
   $('#testBtn10').on('click', () => {
     window.BattleBarUI.setNoticeText("bonus", "春の雨がようやく上がった夕方、まだ水たまりが点々と残る歩道をゆっくり歩きながら駅へ向かうと、濡れたアスファルトの匂いに混じってどこかの店から焼きたてのパンの甘い香りが漂い、信号待ちの人たちの肩越しに見えた薄い雲の切れ間から差し込む淡い光が、ビルの窓や街灯のガラスに反射して細かく揺れているのに気づいて、ほんの少し前まで頭の中を占領していた雑多な心配事――返信しそびれた連絡や、思い通りに進まない作業や、理由のはっきりしない焦り――が、その光の揺れと一緒にゆっくりとほどけていくような気がして、立ち止まったついでにイヤホンの音量を落とし、周囲の音に耳を澄ますと、遠くで電車の走る低い響きや、自転車のベル、誰かの笑い声、閉店準備のシャッターの軋む音が一つの街の呼吸みたいに重なり合い、そんな当たり前の景色の中に自分も確かに混ざっているのだと思うと、不思議なくらい肩の力が抜けて、完璧な答えを今すぐ出さなくても、今日できることを一つずつ片付けていけばいいのかもしれない、いや、むしろそうやって進むしかないのだと腹の底で静かに納得し、空の色が少しずつ群青に傾いていくのを眺めながら、さっきまで「嫌だな」と感じていた帰り道が、いつの間にか小さな回復の時間に変わっていることに気づき、改札の前でポケットの中の切符を探し当てたときには、今日という一日が思ったより悪くないどころか、案外ちゃんと意味を持って積み重なっているのかもしれないと、ほんの少しだけ前向きな気持ちになっていた。");
   })
-});
+
+  $('#testBtn11').on('click', () => {
+    window.BattleBarUI.leftNotice.showNotice("target", {html: "<span class='notice__label'>ミッション成功！</span>"});
+  })
+
+  $('#testBtn12').on('click', () => {
+    window.BattleBarUI.rightNotice.showNotice("target", {html: "<span class='notice__label'>右側のテキスト</span>"});
+  })
+
+  // Left notice theme buttons
+  $('#testBtn13').on('click', () => {
+    window.BattleBarUI.leftNotice.setNoticeTheme("dark");
+  })
+
+  $('#testBtn14').on('click', () => {
+    window.BattleBarUI.leftNotice.setNoticeTheme("mid");
+  })
+
+  $('#testBtn15').on('click', () => {
+    window.BattleBarUI.leftNotice.setNoticeTheme("bright");
+  })
+
+  // Right notice theme buttons
+  $('#testBtn16').on('click', () => {
+    window.BattleBarUI.rightNotice.setNoticeTheme("dark");
+  })
+
+  $('#testBtn17').on('click', () => {
+    window.BattleBarUI.rightNotice.setNoticeTheme("mid");
+  })
+
+  $('#testBtn18').on('click', () => {
+    window.BattleBarUI.rightNotice.setNoticeTheme("bright");
+  })
+
+  $('#testBtn19').on('click', () => {
+    window.BattleBarUI.leftNotice.showNotice("bonus", {html: "<span class='notice__label'>左側のテキスト</span>"});
+  })
+
+  $('#testBtn20').on('click', () => {
+    window.BattleBarUI.rightNotice.showNotice("bonus", {html: "<span class='notice__label'>右側のテキスト</span>"});
+  })
+
+  $('#testBtn21').on('click', () => {
+    window.BattleBarUI.leftNotice.hideNotice();
+    window.BattleBarUI.rightNotice.hideNotice();
+  })
+
+  // テキストとテーマを同時に変更するデモ
+  $('#testBtn22').on('click', () => {
+    window.BattleBarUI.showNotice("target", {
+      html: "<span class='notice__label'>テーマ付きテキスト</span>",
+      theme: "dark"
+    });
+  })
+
+  $('#testBtn23').on('click', () => {
+    window.BattleBarUI.leftNotice.showNotice("target", {
+      html: "<span class='notice__label'>左側：テーマ+テキスト</span>",
+      theme: "bright"
+    });
+  })
+
+  $('#testBtn24').on('click', () => {
+    window.BattleBarUI.rightNotice.showNotice("bonus", {
+      html: "<span class='notice__label'>右側：テーマ+テキスト</span>",
+      theme: "mid"
+    });
+  })
+  $('#testBtn25').on('click', () => {
+    window.BattleBarUI.leftNotice.showNotice("bonus", {
+      html: "<span class='notice__label'>春の雨がようやく上がった夕方、まだ水たまりが点々と残る歩道をゆっくり歩きながら駅へ向かうと、濡れたアスファルトの匂いに混じってどこかの店から焼きたてのパンの甘い香りが漂い、信号待ちの人たちの肩越しに見えた薄い雲の切れ間から差し込む淡い光が、ビルの窓や街灯のガラスに反射して細かく揺れているのに気づいて、ほんの少し前まで頭の中を占領していた雑多な心配事――返信しそびれた連絡や、思い通りに進まない作業や、理由のはっきりしない焦り――が、その光の揺れと一緒にゆっくりとほどけていくような気がして、立ち止まったついでにイヤホンの音量を落とし、周囲の音に耳を澄ますと、遠くで電車の走る低い響きや、自転車のベル、誰かの笑い声、閉店準備のシャッターの軋む音が一つの街の呼吸みたいに重なり合い、そんな当たり前の景色の中に自分も確かに混ざっているのだと思うと、不思議なくらい肩の力が抜けて、完璧な答えを今すぐ出さなくても、今日できることを一つずつ片付けていけばいいのかもしれない、いや、むしろそうやって進むしかないのだと腹の底で静かに納得し、空の色が少しずつ群青に傾いていくのを眺めながら、さっきまで「嫌だな」と感じていた帰り道が、いつの間にか小さな回復の時間に変わっていることに気づき、改札の前でポケットの中の切符を探し当てたときには、今日という一日が思ったより悪くないどころか、案外ちゃんと意味を持って積み重なっているのかもしれないと、ほんの少しだけ前向きな気持ちになっていた。</span>",
+      theme: "bright"
+    });
+  })
+  $('#testBtn26').on('click', () => {
+    window.BattleBarUI.rightNotice.showNotice("bonus", {
+      html: "<span class='notice__label'>春の雨がようやく上がった夕方、まだ水たまりが点々と残る歩道をゆっくり歩きながら駅へ向かうと、濡れたアスファルトの匂いに混じってどこかの店から焼きたてのパンの甘い香りが漂い、信号待ちの人たちの肩越しに見えた薄い雲の切れ間から差し込む淡い光が、ビルの窓や街灯のガラスに反射して細かく揺れているのに気づいて、ほんの少し前まで頭の中を占領していた雑多な心配事――返信しそびれた連絡や、思い通りに進まない作業や、理由のはっきりしない焦り――が、その光の揺れと一緒にゆっくりとほどけていくような気がして、立ち止まったついでにイヤホンの音量を落とし、周囲の音に耳を澄ますと、遠くで電車の走る低い響きや、自転車のベル、誰かの笑い声、閉店準備のシャッターの軋む音が一つの街の呼吸みたいに重なり合い、そんな当たり前の景色の中に自分も確かに混ざっているのだと思うと、不思議なくらい肩の力が抜けて、完璧な答えを今すぐ出さなくても、今日できることを一つずつ片付けていけばいいのかもしれない、いや、むしろそうやって進むしかないのだと腹の底で静かに納得し、空の色が少しずつ群青に傾いていくのを眺めながら、さっきまで「嫌だな」と感じていた帰り道が、いつの間にか小さな回復の時間に変わっていることに気づき、改札の前でポケットの中の切符を探し当てたときには、今日という一日が思ったより悪くないどころか、案外ちゃんと意味を持って積み重なっているのかもしれないと、ほんの少しだけ前向きな気持ちになっていた。</span>",
+      theme: "bright"
+    });
+  })
+})();

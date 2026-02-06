@@ -73,6 +73,58 @@ html(lang="ja")
                         span.notice__label#noticeBonusItemText 2倍｜10秒
                       .marquee__item(aria-hidden="true")
 
+        //- Left and Right notices container
+        .battle__under-notices
+          .battle__under-notice-left
+            //- Left notice (left-aligned)
+            .noticeWrap#battleNoticeWrapLeft(data-theme="mid" aria-live="polite")
+              .noticeCard#battleNoticeCardLeft
+                .noticeCard__faces
+                  //- Pattern: target gifters
+                  .noticeFace.noticeFace--target(data-pattern="target")
+                    .noticeFace__content
+                      .marquee
+                        .marquee__track
+                          .marquee__item#noticeTargetItemLeft
+                            span.notice__label#noticeTargetItemTextLeft ギフターの目標人数：2初めてのギフトでギフトポイント2倍｜10秒
+                          .marquee__item(aria-hidden="true")
+
+                  //- Pattern: first gift bonus
+                  .noticeFace.noticeFace--bonus(data-pattern="bonus")
+                    .noticeFace__content
+                      .notice__icon.notice__icon--spacer(aria-hidden="true")
+                        span.notice__spacer
+                      .marquee
+                        .marquee__track
+                          .marquee__item#noticeBonusItemLeft
+                            span.notice__label#noticeBonusItemTextLeft 2倍｜10秒
+                          .marquee__item(aria-hidden="true")
+
+          .battle__under-notice-right
+            //- Right notice (right-aligned)
+            .noticeWrap#battleNoticeWrapRight(data-theme="mid" aria-live="polite")
+              .noticeCard#battleNoticeCardRight
+                .noticeCard__faces
+                  //- Pattern: target gifters
+                  .noticeFace.noticeFace--target(data-pattern="target")
+                    .noticeFace__content
+                      .marquee
+                        .marquee__track
+                          .marquee__item#noticeTargetItemRight
+                            span.notice__label#noticeTargetItemTextRight ギフターの目標人数：2初めてのギフトでギフトポイント2倍｜10秒
+                          .marquee__item(aria-hidden="true")
+
+                  //- Pattern: first gift bonus
+                  .noticeFace.noticeFace--bonus(data-pattern="bonus")
+                    .noticeFace__content
+                      .notice__icon.notice__icon--spacer(aria-hidden="true")
+                        span.notice__spacer
+                      .marquee
+                        .marquee__track
+                          .marquee__item#noticeBonusItemRight
+                            span.notice__label#noticeBonusItemTextRight 2倍｜10秒
+                          .marquee__item(aria-hidden="true")
+
 
       //- ここから下はデモ。不要なら丸ごと削除OK
       .demo
@@ -89,4 +141,28 @@ html(lang="ja")
         button#testBtn08.button targetテキスト変更02
         button#testBtn09.button bonusテキスト変更01
         button#testBtn10.button bonusテキスト変更02
+        button#testBtn11.button 左通知表示 target
+        button#testBtn19.button 左通知表示 bonus
+        button#testBtn25.button 左通知表示 bonus Text02
+        button#testBtn12.button 右通知表示 target
+        button#testBtn20.button 右通知表示 bonus
+        button#testBtn26.button 右通知表示 bonus Text02
+        br
+        span 左通知テーマ：
+        button#testBtn13.button 左dark
+        button#testBtn14.button 左mid
+        button#testBtn15.button 左bright
+        br
+        span 右通知テーマ：
+        button#testBtn16.button 右dark
+        button#testBtn17.button 右mid
+        button#testBtn18.button 右bright 
+        br
+        span 左右通知テーマ：
+        button#testBtn21.button 非表示
+        br
+        span テキスト+テーマ同時変更：
+        button#testBtn22.button 中央(text+theme dark)
+        button#testBtn23.button 左(text+theme bright)
+        button#testBtn24.button 右(text+theme mid)
 
